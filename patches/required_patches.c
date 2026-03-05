@@ -1,259 +1,8 @@
 #include "patches.h"
 #include "misc_funcs.h"
 #include "PR/os_pi.h"
-
-int dummy = 1;
-int dummyBSS;
-
-extern s32 D_8001C3F8;
-extern OSIoMesg D_8001C400;
-extern OSMesgQueue D_8001C418;
-
-extern void osYieldThread(void);
-
-extern void func_800007F0(s32 id, void* vAddr);
-
-extern Gfx D_8029F718[];
-extern Gfx D_8029F6D8[];
-extern Gfx D_200000[];
-
-extern u8 *D_802A5390;
-extern u32 D_802A5388;
-
-extern s32 D_80100000;
-extern u8 D_8014C8D0[];
-extern s32 D_8029F5E0;
-extern s32 D_8029F5F8;
-extern s32 D_802A5368;
-extern Gfx* gMasterDisplayList; // D_802A5390
-
-
-extern u8 D_8029F810[];
-extern u8 D_8029F7F8[];
-
-struct UnkStruct800BD5B0 D_800BD770;
-
-struct UnkStruct800BD5B0 {
-    Vp unk_00;
-    u32 unk10;
-    u32 unk14;
-    Mtx unk_18;
-    u32 unk58;
-    f32 unk5C;
-    f32 unk60;
-    f32 unk64;
-    f32 unk68;
-};
-
-struct UnkStruct802A538C {
-    char pad[0x40];  
-};
-
-extern struct UnkStruct800BD5B0 gFrameBuffers[];
-extern Mtx* D_802A538C;
-extern Mtx D_802A53D8;
-
-extern u16 D_802A53D0;
-
-typedef struct {
-  unsigned char	col[3];		/* diffuse light value (rgba) */
-  char 		pad1;
-  unsigned char	colc[3];	/* copy of diffuse light value (rgba) */
-  char 		pad2;
-  signed char	dir[3];		/* direction of light (normalized) */
-  char 		pad3;
-} NewLight_t;
-
-typedef struct {
-  unsigned char	col[3];		/* ambient light value (rgba) */
-  char 		pad1;
-  unsigned char	colc[3];	/* copy of ambient light value (rgba) */
-  char 		pad2;
-} NewAmbient_t;
-
-typedef union {
-    NewLight_t	l;
-} NewLight;
-
-typedef union {
-    NewAmbient_t	l;
-} NewAmbient;
-
-typedef struct {
-    NewAmbient	a;
-    NewLight	l[2];
-} NewLights2;
-
-// hack, due to long width issues
-extern NewLights2 D_8029F800 __attribute__((aligned(8)));
-
-extern void *func_80227678(u32);
-void func_80297D60(void *, s32);
-
-typedef unsigned int uintptr_t;
-
-void *Libc_Memcpy(uintptr_t dest, uintptr_t source, s32 c);
-
-struct UnkStruct802AC5C0 {
-    u16 unk0;
-    u16 unk2;
-    u16 unk4;
-    u16 unk6;
-    u16 unk8;
-    u16 unkA;
-    u16 unkC;
-    u16 unkE;
-    char pad10[0x4C];
-    f32 unk5C;
-    f32 unk60;
-    f32 unk64;
-    f32 unk68;
-};
-
-extern s32 D_802A53BC;
-extern s32 D_802A53C0;
-extern s32 D_802A53C4;
-extern s32 D_802A53C8;
-
-s32 HuPrcCreate(s32*, s32, u8 *, s32, s32);                  /* extern */
-s32 func_802276FC(s32);                                 /* extern */
-void *func_8022A6C4(void *, s32);                        /* extern */
-struct UnkStruct802B0308_Inner *func_8026CE28(s32);                        /* extern */
-extern s32 D_802A1B50;
-
-typedef struct {
-    int Unk00;     // Offset: 0x00
-    int UnkFlags1;     // Offset: 0x04
-    int FileID;     // Offset: 0x08
-    int UnkFlags2;     // Offset: 0x0C
-    int UnkFlags3;     // Offset: 0x10
-    int UnkFlags4;     // Offset: 0x14
-    float ScrollXSpeed;     // Offset: 0x18
-    float ScrollYSpeed;     // Offset: 0x1C
-    float ScrollX;     // Offset: 0x20
-    float ScrollY;     // Offset: 0x24
-    float OffsetX;     // Offset: 0x28
-    float OffsetY;     // Offset: 0x2C
-    float ResX;     // Offset: 0x30
-    float ResY;     // Offset: 0x34
-    float ShiftX;     // Offset: 0x38
-    float ShiftY;     // Offset: 0x3C
-    float ScaleX;     // Offset: 0x40
-    float ScaleY;     // Offset: 0x44
-    float ImageWidth;     // Offset: 0x48
-    float ImageHeight;     // Offset: 0x4C
-} SkyBox;
-
-extern SkyBox D_802B0260;
-
-struct UnkStruct802B0300_Inner {
-    char pad[0x10];
-    u16 unk10;
-    u16 unk12;
-};
-
-struct UnkStruct802B0300 {
-    struct UnkStruct802B0300_Inner *unk0;
-};
-
-struct UnkStruct802B0308_Inner {
-    char pad[0xC];
-    u32 unkC;
-    f32 unk10;
-    f32 unk14;
-    f32 unk18;
-    f32 unk1C;
-    f32 unk20;
-    f32 unk24;
-};
-
-struct UnkStruct802B0308 {
-    struct UnkStruct802B0308_Inner *unk0;
-};
-
-extern struct UnkStruct802B0300 D_802B0300[];
-extern struct UnkStruct802B0308 D_802B0308[];
-
-extern void func_80287904();
-
-RECOMP_EXPORT void recomp_enable_rects_extended(Gfx **gfx) {
-    recomp_printf("(E) Master Display List: 0x%08X\n", gMasterDisplayList);
-    gEXSetRectAspect((*gfx++), G_EX_ASPECT_STRETCH);
-}
-
-RECOMP_EXPORT void recomp_disable_rects_extended(Gfx **gfx) {
-    recomp_printf("(D) Master Display List: 0x%08X\n", gMasterDisplayList);
-    gEXSetRectAspect((*gfx++), G_EX_ASPECT_AUTO);
-}
-
-// init_skybox
-RECOMP_PATCH SkyBox* func_80287DC0(s32 fileID) {
-    SkyBox* skybox = &D_802B0260;
-    s32 i;
-
-    for(i = 0; i < 2; i++) {
-        // find a non-used skybox to init in.
-        if (skybox->UnkFlags1 == 0) {
-            recomp_printf("Skybox File ID being processed: %d\n", fileID);
-            skybox->Unk00 = i;
-            skybox->FileID = fileID;
-            skybox->UnkFlags1 = (s32) (skybox->UnkFlags1 | 0x80000000);
-            skybox->UnkFlags2 = 0x400;
-            skybox->UnkFlags3 = 0x40;
-            D_802B0300[skybox->Unk00].unk0 = func_8026CE28(fileID);
-            D_802B0308[skybox->Unk00].unk0 = func_8022A6C4(D_802B0300[skybox->Unk00].unk0, skybox->UnkFlags3);
-            skybox->UnkFlags2 |= D_802B0308[skybox->Unk00].unk0->unkC;
-            recomp_printf("Skybox Width: 0x%08X\n", D_802B0300[skybox->Unk00].unk0->unk10);
-            skybox->ImageWidth = D_802B0300[skybox->Unk00].unk0->unk10;
-            recomp_printf("Skybox Height: 0x%08X\n", D_802B0300[skybox->Unk00].unk0->unk12);
-            skybox->ImageHeight = D_802B0300[skybox->Unk00].unk0->unk12;
-            D_802B0308[skybox->Unk00].unk0->unk10 = skybox->OffsetX;
-            D_802B0308[skybox->Unk00].unk0->unk14 = skybox->OffsetY;
-            D_802B0308[skybox->Unk00].unk0->unk18 = skybox->ResX;
-            D_802B0308[skybox->Unk00].unk0->unk1C = skybox->ResY;
-            D_802B0308[skybox->Unk00].unk0->unk20 = 0;
-            D_802B0308[skybox->Unk00].unk0->unk24 = 0;
-            if (D_802A1B50 == -1) {
-                D_802A1B50 = HuPrcCreate(&func_80287904, 0, 0, 0, 0x403);
-                func_802276FC(0);
-            }
-            return skybox;
-        }
-        skybox++;
-    }
-    return NULL;
-}
-
-// 8, 6, 304, 228
-RECOMP_PATCH void func_80227708(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    arg0 = 0;
-    arg1 = 0;
-    arg2 = 320;
-    arg3 = 240;
-    D_802A53BC = arg0;
-    D_802A53C0 = arg1;
-    D_802A53C4 = (arg0 + arg2);
-    D_802A53C8 = (arg1 + arg3);
-}
-
-RECOMP_PATCH void func_80227D50(struct UnkStruct802AC5C0* arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4) {
-    arg1 = 0;
-    arg2 = 0;
-    arg3 = 320;
-    arg4 = 240;
-    arg0->unk0 = (arg3 << 1);
-    arg0->unk2 = (arg4 << 1);
-    arg0->unk4 = 0x1FF;
-    arg0->unk6 = 0;
-    arg0->unk8 = (((arg1 << 1) + arg3) << 1);
-    arg0->unkA = (((arg2 << 1) + arg4) << 1);
-    arg0->unkC = 0x1FF;
-    arg0->unkE = 0;
-    arg0->unk5C = arg1;
-    arg0->unk60 = arg2;
-    arg0->unk64 = ((arg1 + arg3));
-    arg0->unk68 = ((arg2 + arg4));
-}
+#include "PR/sched.h"
+#include "ultra_extensions.h"
 
 enum OverlayIDLoaded {
     UNSUPPORTED_OVERLAY = -1,
@@ -366,9 +115,22 @@ enum OverlayIDLoaded {
     LOADED_OVL_14_SUBOVL_8 = 93,
     LOADED_OVL_14_SUBOVL_9 = 94,
     LOADED_OVL_14_SUBOVL_10 = 95,
+    LOADED_MAIN_AREA = 96, // hack
 };
 
 static enum OverlayIDLoaded gOverlayID = UNSUPPORTED_OVERLAY;
+
+int dummy = 1;
+int dummyBSS;
+
+extern u32 gSecureCallArr[];
+
+RECOMP_PATCH void set_zero_vaddr_tlb(void) {
+    //load_from_rom_to_addr(D_80042000, (u32)&zerojump_ROM_END - (u32)&zerojump_ROM_START, (u32)&zerojump_ROM_START);
+    // Not used.
+    //osMapTLB(0, 0, NULL, (u32) (((u32) (&D_80042000)) - 0x80000000), -1, -1);
+    gSecureCallArr[0] = 0x80019f80; // this feels dirty hardcoding it, but whatever.
+}
 
 s32 func_8022979C(void*, s32, s32);                       /* extern */
 s32 func_8022984C(void*, s32);                          /* extern */
@@ -379,19 +141,138 @@ extern f32 D_802A3164;
 extern s32 D_802AC89C;
 extern s32 D_802AC8A0;
 
+extern s32 D_80024818;
+extern u8 gSectionSizes[];
+extern OSThread gGameThread;
+
+#define ZEROJMP_SECCALL_TABLE_ID 0
+#define ZEROJMP_OS_TABLE_ID      1
+#define ZEROJMP_DMA_TABLE_ID     2
+#define ZEROJMP_OVL_TABLE_ID     3
+// ID 4 Unknown
+// ID 5 Unknown
+#define ZEROJMP_VI_TABLE_ID      6
+#define ZEROJMP_AI_TABLE_ID      7
+#define ZEROJMP_DP_TABLE_ID      8
+#define ZEROJMP_PI_TABLE_ID      9
+#define ZEROJMP_CONT_TABLE_ID    10
+// ID 11 Unknown (possibly unused/unmapped)
+// ID 12 Unknown
+// ID 13 Unknown
+// ID 14 Unknown
+// ID 15 Unknown
+// ID 16 Unknown
+// ID 17 Unknown
+#define ZEROJMP_SYS_TABLE_ID     18
+#define ZEROJMP_AL_TABLE_ID      19
+// ID 20 Unknown
+// ID 21 Unknown
+#define ZEROJMP_PFS_TABLE_ID     22
+// ID 23 Unknown
+// ID 24 Unknown
+// ID 25 Unknown
+// ID 26 Unknown
+// ID 27 Unknown
+// ID 28 Unknown
+// ID 29 Unknown
+// ID 30 Unknown
+// ID 31 Unknown (possibly unused/unmapped)
+// ID 32 Unknown
+// ID 33 Unknown
+// ID 34 Unknown
+// ID 35 Unknown
+// ID 36 Unknown
+// ID 37 Unknown
+// ID 38 Unknown
+// ID 39 Unknown
+// ID 40 Unknown
+// ID 41 Unknown
+// ID 42 Unknown
+// ID 43 Unknown
+// ID 44 Unknown
+// ID 45 Unknown
+// ID 46 Unknown
+// ID 47 Unknown
+// ID 48 Unknown
+// ID 49 Unknown
+
+// FUNCTION TABLES
+extern unsigned long gZeroJmpFuncs[]; // (ID: 0) ZeroJmp
+extern unsigned long gOSFuncs[]; // (ID: 1) OS functions
+extern unsigned long gDMAFuncs[]; // (ID: 2) DMA
+extern unsigned long gOVLFuncs[]; // (ID: 3) Overlay load/exec?
+extern unsigned long D_8029F570[]; // (ID: 4) Unknown
+extern unsigned long D_8029F590[]; // (ID: 5) Unknown
+extern unsigned long gVIFuncs[]; // (ID: 6) VI
+extern unsigned long gAIFuncs[]; // (ID: 7) AI
+extern unsigned long gDPFuncs[]; // (ID: 8) DP
+extern unsigned long gPIFuncs[]; // (ID: 9) PI
+extern unsigned long gContFuncs[]; // (ID: 10) CONT
+extern unsigned long D_8029F5D0[]; // (ID: 11) Unknown
+extern unsigned long D_802A0D50[]; // (ID: 12) Unknown
+extern unsigned long D_802A1450[]; // (ID: 13) Unknown
+extern unsigned long D_802A1610[]; // (ID: 14) Unknown
+extern unsigned long D_802A0CF4[]; // (ID: 15) Unknown
+extern unsigned long D_802A0E58[]; // (ID: 16) Unknown
+// ID 17 Unknown (unused/unmapped)
+extern unsigned long gSysFuncs[]; // (ID: 18) SYS (sort of treated like a misc)
+extern unsigned long gAlFuncs[]; // (ID: 19) AL
+extern unsigned long D_802A13D0[]; // (ID: 20) Unknown
+extern unsigned long D_802A13E4[]; // (ID: 21) Unknown
+extern unsigned long gPfsFuncs[]; // (ID: 22) PFS
+extern unsigned long D_802A0050[]; // (ID: 23) Unknown
+extern unsigned long D_8029FD40[]; // (ID: 24) Unknown
+extern unsigned long D_802A0100[]; // (ID: 25) Unknown
+extern unsigned long D_802A1B54[]; // (ID: 26) Unknown
+extern unsigned long D_802A015C[]; // (ID: 27) Unknown
+extern unsigned long D_802A1534[]; // (ID: 28) Unknown
+extern unsigned long D_8029FE40[]; // (ID: 29) Unknown
+extern unsigned long D_802A1C00[]; // (ID: 30) Unknown
+// ID 31 Unknown (unused/unmapped)
+extern unsigned long D_802A1A88[]; // (ID: 32) Unknown
+extern unsigned long D_8029F820[]; // (ID: 33) Unknown
+extern unsigned long D_8029F7C8[]; // (ID: 34) Unknown
+extern unsigned long D_802A15AC[]; // (ID: 35) Unknown
+extern unsigned long D_802A15DC[]; // (ID: 36) Unknown
+extern unsigned long D_802A1A48[]; // (ID: 37) Unknown
+extern unsigned long D_802A1CE4[]; // (ID: 38) Unknown
+extern unsigned long D_802A14B8[]; // (ID: 39) Unknown
+extern unsigned long D_802A1500[]; // (ID: 40) Unknown
+extern unsigned long D_802A1D60[]; // (ID: 41) Unknown
+extern unsigned long D_802A1AB4[]; // (ID: 42) Unknown
+extern unsigned long D_802A1380[]; // (ID: 43) Unknown
+extern unsigned long D_802A1D70[]; // (ID: 44) Unknown
+extern unsigned long D_802A1184[]; // (ID: 45) Unknown
+extern unsigned long D_802A1D00[]; // (ID: 46) Unknown
+extern unsigned long D_802A1DBC[]; // (ID: 47) Unknown
+extern unsigned long D_802A2C50[]; // (ID: 48) Unknown
+extern unsigned long D_802A2CB0[]; // (ID: 49) Unknown
+
+extern void set_secure_call_arr__0x0000__secure_call(int, void *);
+extern void set_secure_call_arr(int, void *);
+
+extern void OvlSetup_LoadSectionSizes(void);
+
+void load_from_rom_to_addr(void* vAddr, s32 size, u32 devAddr);
+void OvlSetup_LoadExecAddress(s32 id, void *vAddr, void *arg);
+
+extern void* D_8001C3C0;
+extern OSMesgQueue D_8001C3E0;
+extern s32 D_8001C3F8;
+extern OSIoMesg D_8001C400;
+extern OSMesgQueue D_8001C418;
+extern s32 D_8001C430;
+
 RECOMP_PATCH void load_from_rom_to_addr(void* vAddr, s32 size, u32 devAddr) {
+    recomp_printf("Load (load_from_rom_to_addr): devAddr (0x%08X) vAddr (0x%08X) size (0x%08X)\n", devAddr, vAddr, size);
+
     if (D_8001C3F8 != 0) {
         do {
             osYieldThread();
         } while (D_8001C3F8 != 0);
     }
     D_8001C3F8 = 1;
-
-    // osWritebackDCache(vAddr, size);
-    // osInvalDCache(vAddr, size);
-    // osInvalICache(vAddr, size);
-
-    // are we loading one of the overlays? Set the ID.
+    
     switch(devAddr) {
         case 0x00122016: recomp_load_overlays(0x00800010, (void*) 0x80043000, 0x000019E0); gOverlayID = LOADED_OVL_1_SUBOVL_1; break;
         case 0x00122B34: recomp_load_overlays(0x008019F0, (void*) 0x80043000, 0x00001AD0); gOverlayID = LOADED_OVL_1_SUBOVL_2; break;
@@ -488,9 +369,13 @@ RECOMP_PATCH void load_from_rom_to_addr(void* vAddr, s32 size, u32 devAddr) {
         case 0x002E9B68: recomp_load_overlays(0x00996240, (void*) 0x80043000, 0x00002C60); gOverlayID = LOADED_OVL_14_SUBOVL_8; break;
         case 0x002EB3EA: recomp_load_overlays(0x00998EA0, (void*) 0x80043000, 0x00003390); gOverlayID = LOADED_OVL_14_SUBOVL_9; break;
         case 0x002ED178: recomp_load_overlays(0x0099C230, (void*) 0x80043000, 0x000036F0); gOverlayID = LOADED_OVL_14_SUBOVL_10; break;
-        default:
+        default: {
+            if (devAddr == 0x00040000) {
+                size = 0xE0000; // broken size. correct it
+            }
             recomp_load_overlays(devAddr, (void*) vAddr, size);
             break;
+        }
     }
 
     osPiStartDma_recomp(&D_8001C400, 0, 0, devAddr, vAddr, (u32) size, &D_8001C418);
@@ -530,432 +415,125 @@ RECOMP_PATCH void func_800004D0(void* vramAddr, u32 size, u32 devAddr, s32 arg3)
     osPiStartDma_recomp(&D_8001C400, 0, arg3, devAddr, vramAddr, size, &D_8001C418);
 }
 
-RECOMP_PATCH void func_8000083C(s32 id, void *vAddr, s32 arg) {
-    void (*volatile localarg)(int);
+void func_80225840(void *);                               /* extern */;
+void func_80225800(void *arg0);
+
+void OvlSetup_LoadArea(s32 id, void* vAddr);
+
+RECOMP_PATCH void OvlSetup_LoadExecAddress(s32 id, void *vAddr, void *arg) {
+    void (*volatile localarg)(void *);
     // its also possible to match without fake code by omitting arg1 passed to func_800007F0. which would be UB
-    func_800007F0(id, vAddr);
+    OvlSetup_LoadArea(id, vAddr);
     (localarg = vAddr)(arg);
     if(!vAddr) {} // fake check to bump regalloc. see above note
 }
 
-extern u32 gSecureCallArr[];
-extern void n64main(void);
+enum BufferGetMode {
+    BUFFER_GET_FRONT,
+    BUFFER_GET_BACK,
+};
 
-extern u32 D_80042000[];
+s32 Gfx_GetAvailableBuffer(void);
+void Gfx_SetScreenCoords(s32 ulx, s32 uly, s32 width, s32 height);
+void Gfx_SetBackdropEnabled(s32 enable);
+void Gfx_SetBackdropColor(s32 r, s32 g, s32 b);
+void Gfx_SetMotionBlurEnabled(s32 enable);
+void Gfx_SetMotionBlurStrength(s32 c);
+void Gfx_SetBufferDisabled(s32 id);
+s32 Gfx_GetBufferEnabledStatus(s32 id);
+s32 Gfx_GetSubDLPtr(s32 id);
+Gfx *Gfx_InitGfx(void);
+void Gfx_DrawBackdrop(Gfx** gfxP);
+void Gfx_EndRender(Gfx* gfx);
+void *Gfx_GetFrameBufferPtr(enum BufferGetMode mode);
+void Gfx_SetPauseRender(s32 enable);
+void Gfx_CreateRenderThread(void);
+void Gfx_Render(void *unused);
+void Gfx_KillRenderer(void);
 
-extern u32 zerojump_ROM_START;
-extern u32 zerojump_ROM_END;
+typedef struct GfxWork {
+    u8 pad[0x10000];
+    Gfx dls[4][0xA00];
+    Gfx main[0x600];
+} GfxWork; // size:0x27000
 
-RECOMP_PATCH void set_zero_vaddr_tlb(void) {
-    //load_from_rom_to_addr(D_80042000, (u32)&zerojump_ROM_END - (u32)&zerojump_ROM_START, (u32)&zerojump_ROM_START);
-    // Not used.
-    //osMapTLB(0, 0, NULL, (u32) (((u32) (&D_80042000)) - 0x80000000), -1, -1);
-    gSecureCallArr[0] = 0x80019f80; // this feels dirty hardcoding it, but whatever.
-}
+#define G_CC_CUSTOM 0, 0, 0, TEXEL0, 0, 0, 0, PRIMITIVE
 
-extern s32 D_802A5328;
-extern s32 D_802A5324;
-
-extern u8 gOverlaySizes[][2];
-extern u8 D_8019C0D0[][3];
-
-typedef int (*OverlayCallback)(void);
-
-void func_80226368(s32);
-void func_80297D58(s32, s32);
-void func_80297D50(s32, s32);
-void func_80292BD0(s32 arg0, u8* arg1, s32 arg2);
-void func_802266E8(s32);
-s32 func_80226604(s32, s32);
-s32 func_802266DC(s32);
-void func_8022616C(void*, s32, s32, s32);
-
-
-u32 gGlobalOverlayROM_Base   = 0x00000000; // the currently set ROM offset of the OVL being loaded.
-u32 gGlobalOverlayROM_Offset = 0x00000000; // the offset of the overlay
-
-extern u32 D_802AC5D4;
-extern u32 D_802AC5DC;
-
-// -------------------------
-extern int func_ovl3_1_80043000(void); // ovl_3_subovl_1 (Copyright Screen)
-extern int func_ovl2_5_80043000(void); // ovl_2_subovl_5 (Intro) ?
-
-/*
-RECOMP_PATCH void func_8022691C(s32 arg0) {
-    s32 sp44;
-    s32 sp40;
-    s32 sp3C;
-    s32 temp_a0;
-    s32 temp_v0;
-    s32 target;
-    s32 pad[4];
-
-    if (arg0 == D_802A5328) {
-        return;
-    }
-
-    D_802A5328 = arg0;
-    temp_a0 = (gOverlaySizes[arg0][0] << 17) + (gOverlaySizes[arg0][1] << 11);
-    if (temp_a0 != D_802A5324) {
-        D_802A5324 = temp_a0;
-        func_802266E8(temp_a0);
-    }
-    sp44 = func_80226604(0, 1);
-    sp40 = func_802266DC(sp44);
-    func_8022616C((s32* )D_8019C0D0, 1, sp40, sp44);
-    target = D_8019C0D0[0][0];
-    for (sp40 = 0; sp40 < target; sp40++) {
-        sp3C = (D_8019C0D0[sp40][1] << 8) + D_8019C0D0[sp40][2];
-        if (sp3C == arg0) {
-            sp3C = D_8019C0D0[sp40 + 1][0];
-            break;
-        }
-    }
-    func_80226368(sp44);
-    sp44 = func_80226604(sp3C, 1);
-    func_8022616C(&sp40, 4, 1, sp44);
-    func_80297D58(0x80043000, 0x20000);
-    func_80297D50(0x80043000, 0x20000);
-    func_80292BD0(sp44, (u8*)0x80043000, sp40);
-    func_80297D60(0x80043000, 0x20000);
-    func_80226368(sp44);
-    if (D_802A5324 != 0x300000) {
-        D_802A5324 = 0x300000;
-        func_802266E8(0x300000);
-    }
-    // We dont need to store the variable, as we are interpreting the file ID later when the overlay gets executed.
-    //D_802A532C = ((OverlayCallback)0x80043000)();
-
-/*
-    switch(gOverlayID) {
-        case LOADED_OVL_1_SUBOVL_1:   recomp_load_overlays(0x800010, (void*)0x80043000, 0x000019E0); break;
-        case LOADED_OVL_1_SUBOVL_2:   recomp_load_overlays(0x8019F0, (void*)0x80043000, 0x00001AD0); break;
-        case LOADED_OVL_1_SUBOVL_3:   recomp_load_overlays(0x8034C0, (void*)0x80043000, 0x00001A50); break;
-        case LOADED_OVL_1_SUBOVL_4:   recomp_load_overlays(0x804F10, (void*)0x80043000, 0x00001A40); break;
-        case LOADED_OVL_2_SUBOVL_1:   recomp_load_overlays(0x806970, (void*)0x80043000, 0x00005CE0); break;
-        case LOADED_OVL_2_SUBOVL_2:   recomp_load_overlays(0x80C650, (void*)0x80043000, 0x00005500); break;
-        case LOADED_OVL_2_SUBOVL_3:   recomp_load_overlays(0x811B50, (void*)0x80043000, 0x00005800); break;
-        case LOADED_OVL_2_SUBOVL_4:   recomp_load_overlays(0x817350, (void*)0x80043000, 0x000036C0); break;
-        case LOADED_OVL_2_SUBOVL_5:   recomp_load_overlays(0x81AA10, (void*)0x80043000, 0x000068D0); break;
-        case LOADED_OVL_2_SUBOVL_6:   recomp_load_overlays(0x8212E0, (void*)0x80043000, 0x000044F0); break;
-        case LOADED_OVL_3_SUBOVL_1:   recomp_load_overlays(0x8257F0, (void*)0x80043000, 0x00002F80); break;
-        case LOADED_OVL_3_SUBOVL_2:   recomp_load_overlays(0x828770, (void*)0x80043000, 0x00007380); break;
-        case LOADED_OVL_3_SUBOVL_3:   recomp_load_overlays(0x82FAF0, (void*)0x80043000, 0x000062E0); break;
-        case LOADED_OVL_3_SUBOVL_4:   recomp_load_overlays(0x835DD0, (void*)0x80043000, 0x00007290); break;
-        case LOADED_OVL_3_SUBOVL_5:   recomp_load_overlays(0x83D060, (void*)0x80043000, 0x000037C0); break;
-        case LOADED_OVL_3_SUBOVL_6:   recomp_load_overlays(0x840820, (void*)0x80043000, 0x00007590); break;
-        case LOADED_OVL_3_SUBOVL_7:   recomp_load_overlays(0x847DB0, (void*)0x80043000, 0x00003DF0); break;
-        case LOADED_OVL_4_SUBOVL_1:   recomp_load_overlays(0x84BBC0, (void*)0x80043000, 0x00007980); break;
-        case LOADED_OVL_4_SUBOVL_2:   recomp_load_overlays(0x853540, (void*)0x80043000, 0x000070D0); break;
-        case LOADED_OVL_4_SUBOVL_3:   recomp_load_overlays(0x85A610, (void*)0x80043000, 0x00002670); break;
-        case LOADED_OVL_4_SUBOVL_4:   recomp_load_overlays(0x85CC80, (void*)0x80043000, 0x00002DD0); break;
-        case LOADED_OVL_4_SUBOVL_5:   recomp_load_overlays(0x85FA50, (void*)0x80043000, 0x00002A60); break;
-        case LOADED_OVL_4_SUBOVL_6:   recomp_load_overlays(0x8624B0, (void*)0x80043000, 0x00006370); break;
-        case LOADED_OVL_4_SUBOVL_7:   recomp_load_overlays(0x868820, (void*)0x80043000, 0x00004950); break;
-        case LOADED_OVL_4_SUBOVL_8:   recomp_load_overlays(0x86D170, (void*)0x80043000, 0x000025A0); break;
-        case LOADED_OVL_4_SUBOVL_9:   recomp_load_overlays(0x86F710, (void*)0x80043000, 0x00004AE0); break;
-        case LOADED_OVL_4_SUBOVL_10:  recomp_load_overlays(0x8741F0, (void*)0x80043000, 0x00003670); break;
-        case LOADED_OVL_5_SUBOVL_1:   recomp_load_overlays(0x877880, (void*)0x80043000, 0x00004AD0); break;
-        case LOADED_OVL_5_SUBOVL_2:   recomp_load_overlays(0x87C350, (void*)0x80043000, 0x00004A00); break;
-        case LOADED_OVL_5_SUBOVL_3:   recomp_load_overlays(0x880D50, (void*)0x80043000, 0x00005140); break;
-        case LOADED_OVL_5_SUBOVL_4:   recomp_load_overlays(0x885E90, (void*)0x80043000, 0x00004020); break;
-        case LOADED_OVL_5_SUBOVL_5:   recomp_load_overlays(0x889EB0, (void*)0x80043000, 0x00003130); break;
-        case LOADED_OVL_5_SUBOVL_6:   recomp_load_overlays(0x88CFE0, (void*)0x80043000, 0x000045B0); break;
-        case LOADED_OVL_5_SUBOVL_7:   recomp_load_overlays(0x891590, (void*)0x80043000, 0x000036E0); break;
-        case LOADED_OVL_6_SUBOVL_1:   recomp_load_overlays(0x894CA0, (void*)0x80043000, 0x00003CE0); break;
-        case LOADED_OVL_6_SUBOVL_2:   recomp_load_overlays(0x898980, (void*)0x80043000, 0x00003760); break;
-        case LOADED_OVL_6_SUBOVL_3:   recomp_load_overlays(0x89C0E0, (void*)0x80043000, 0x00003C10); break;
-        case LOADED_OVL_6_SUBOVL_4:   recomp_load_overlays(0x89FCF0, (void*)0x80043000, 0x00003F00); break;
-        case LOADED_OVL_6_SUBOVL_5:   recomp_load_overlays(0x8A3BF0, (void*)0x80043000, 0x00003210); break;
-        case LOADED_OVL_6_SUBOVL_6:   recomp_load_overlays(0x8A6E00, (void*)0x80043000, 0x00002360); break;
-        case LOADED_OVL_6_SUBOVL_7:   recomp_load_overlays(0x8A9160, (void*)0x80043000, 0x00002360); break;
-        case LOADED_OVL_6_SUBOVL_8:   recomp_load_overlays(0x8AB4C0, (void*)0x80043000, 0x00002360); break;
-        case LOADED_OVL_6_SUBOVL_9:   recomp_load_overlays(0x8AD820, (void*)0x80043000, 0x00002F90); break;
-        case LOADED_OVL_6_SUBOVL_10:  recomp_load_overlays(0x8B07B0, (void*)0x80043000, 0x00002560); break;
-        case LOADED_OVL_6_SUBOVL_11:  recomp_load_overlays(0x8B2D10, (void*)0x80043000, 0x000034C0); break;
-        case LOADED_OVL_6_SUBOVL_12:  recomp_load_overlays(0x8B61D0, (void*)0x80043000, 0x000032B0); break;
-        case LOADED_OVL_6_SUBOVL_13:  recomp_load_overlays(0x8B9480, (void*)0x80043000, 0x00003D50); break;
-        case LOADED_OVL_6_SUBOVL_14:  recomp_load_overlays(0x8BD1D0, (void*)0x80043000, 0x00002360); break;
-        case LOADED_OVL_6_SUBOVL_15:  recomp_load_overlays(0x8BF530, (void*)0x80043000, 0x00003900); break;
-        case LOADED_OVL_7_SUBOVL_1:   recomp_load_overlays(0x8C2E50, (void*)0x80043000, 0x00005720); break;
-        case LOADED_OVL_7_SUBOVL_2:   recomp_load_overlays(0x8C8570, (void*)0x80043000, 0x00005D00); break;
-        case LOADED_OVL_7_SUBOVL_3:   recomp_load_overlays(0x8CE270, (void*)0x80043000, 0x00004090); break;
-        case LOADED_OVL_7_SUBOVL_4:   recomp_load_overlays(0x8D2300, (void*)0x80043000, 0x00005A70); break;
-        case LOADED_OVL_7_SUBOVL_5:   recomp_load_overlays(0x8D7D70, (void*)0x80043000, 0x000034E0); break;
-        case LOADED_OVL_7_SUBOVL_6:   recomp_load_overlays(0x8DB250, (void*)0x80043000, 0x00001940); break;
-        case LOADED_OVL_7_SUBOVL_7:   recomp_load_overlays(0x8DCB90, (void*)0x80043000, 0x00002E30); break;
-        case LOADED_OVL_7_SUBOVL_8:   recomp_load_overlays(0x8DF9C0, (void*)0x80043000, 0x00002DA0); break;
-        case LOADED_OVL_7_SUBOVL_9:   recomp_load_overlays(0x8E2760, (void*)0x80043000, 0x00003200); break;
-        case LOADED_OVL_7_SUBOVL_10:  recomp_load_overlays(0x8E5960, (void*)0x80043000, 0x00003AE0); break;
-        case LOADED_OVL_8_SUBOVL_1:   recomp_load_overlays(0x8E9470, (void*)0x80043000, 0x000042F0); break;
-        case LOADED_OVL_8_SUBOVL_2:   recomp_load_overlays(0x8ED760, (void*)0x80043000, 0x00002D30); break;
-        case LOADED_OVL_8_SUBOVL_3:   recomp_load_overlays(0x8F0490, (void*)0x80043000, 0x00003FB0); break;
-        case LOADED_OVL_8_SUBOVL_4:   recomp_load_overlays(0x8F4440, (void*)0x80043000, 0x00002D10); break;
-        case LOADED_OVL_8_SUBOVL_5:   recomp_load_overlays(0x8F7150, (void*)0x80043000, 0x00003EE0); break;
-        case LOADED_OVL_8_SUBOVL_6:   recomp_load_overlays(0x8FB030, (void*)0x80043000, 0x00007B60); break;
-        case LOADED_OVL_8_SUBOVL_7:   recomp_load_overlays(0x902B90, (void*)0x80043000, 0x00006B80); break;
-        case LOADED_OVL_8_SUBOVL_8:   recomp_load_overlays(0x909710, (void*)0x80043000, 0x000066C0); break;
-        case LOADED_OVL_8_SUBOVL_9:   recomp_load_overlays(0x90FDD0, (void*)0x80043000, 0x000069B0); break;
-        case LOADED_OVL_8_SUBOVL_10:  recomp_load_overlays(0x916780, (void*)0x80043000, 0x000040A0); break;
-        case LOADED_OVL_8_SUBOVL_11:  recomp_load_overlays(0x91A820, (void*)0x80043000, 0x000036A0); break;
-        case LOADED_OVL_8_SUBOVL_12:  recomp_load_overlays(0x91DEC0, (void*)0x80043000, 0x00005C30); break;
-        case LOADED_OVL_8_SUBOVL_13:  recomp_load_overlays(0x923AF0, (void*)0x80043000, 0x00007B50); break;
-        case LOADED_OVL_9_SUBOVL_1:   recomp_load_overlays(0x92B660, (void*)0x80043000, 0x000034C0); break;
-        case LOADED_OVL_9_SUBOVL_2:   recomp_load_overlays(0x92EB20, (void*)0x80043000, 0x00002170); break;
-        case LOADED_OVL_9_SUBOVL_3:   recomp_load_overlays(0x930C90, (void*)0x80043000, 0x00002EA0); break;
-        case LOADED_OVL_9_SUBOVL_4:   recomp_load_overlays(0x933B30, (void*)0x80043000, 0x00002070); break;
-        case LOADED_OVL_9_SUBOVL_5:   recomp_load_overlays(0x935BA0, (void*)0x80043000, 0x00007BF0); break;
-        case LOADED_OVL_9_SUBOVL_6:   recomp_load_overlays(0x93D790, (void*)0x80043000, 0x00002F80); break;
-        case LOADED_OVL_10_SUBOVL_1:  recomp_load_overlays(0x940720, (void*)0x80043000, 0x00009200); break;
-        case LOADED_OVL_10_SUBOVL_2:  recomp_load_overlays(0x949920, (void*)0x80043000, 0x0000AC90); break;
-        case LOADED_OVL_11_SUBOVL_1:  recomp_load_overlays(0x9545C0, (void*)0x80043000, 0x0000A4A0); break;
-        case LOADED_OVL_11_SUBOVL_2:  recomp_load_overlays(0x95EA60, (void*)0x80043000, 0x0000D270); break;
-        case LOADED_OVL_12_SUBOVL_1:  recomp_load_overlays(0x96BCE0, (void*)0x80043000, 0x0000AF30); break;
-        case LOADED_OVL_12_SUBOVL_2:  recomp_load_overlays(0x976C10, (void*)0x80043000, 0x0000E320); break;
-        case LOADED_OVL_13_SUBOVL_1:  recomp_load_overlays(0x984F40, (void*)0x80043000, 0x000022A0); break;
-        case LOADED_OVL_14_SUBOVL_1:  recomp_load_overlays(0x987200, (void*)0x80043000, 0x00002800); break;
-        case LOADED_OVL_14_SUBOVL_2:  recomp_load_overlays(0x989A00, (void*)0x80043000, 0x00001DC0); break;
-        case LOADED_OVL_14_SUBOVL_3:  recomp_load_overlays(0x98B7C0, (void*)0x80043000, 0x00001E40); break;
-        case LOADED_OVL_14_SUBOVL_4:  recomp_load_overlays(0x98D600, (void*)0x80043000, 0x00001E30); break;
-        case LOADED_OVL_14_SUBOVL_5:  recomp_load_overlays(0x98F430, (void*)0x80043000, 0x00001E50); break;
-        case LOADED_OVL_14_SUBOVL_6:  recomp_load_overlays(0x991280, (void*)0x80043000, 0x00002840); break;
-        case LOADED_OVL_14_SUBOVL_7:  recomp_load_overlays(0x993AC0, (void*)0x80043000, 0x00002780); break;
-        case LOADED_OVL_14_SUBOVL_8:  recomp_load_overlays(0x996240, (void*)0x80043000, 0x00002C60); break;
-        case LOADED_OVL_14_SUBOVL_9:  recomp_load_overlays(0x998EA0, (void*)0x80043000, 0x00003390); break;
-        case LOADED_OVL_14_SUBOVL_10: recomp_load_overlays(0x99C230, (void*)0x80043000, 0x000036F0); break;
-        case UNSUPPORTED_OVERLAY:
-        default: // unsupported overlay.
-            while(1)
-                ;
-    }
-
-}
-*/
-
-extern u32 D_802A1D90;
-extern u8 *D_802B0310;
-extern u16 D_802B0314;
-
-extern void func_8029ADCC(void*);
-extern s32 func_80226304(s32);
-u8* Libc_Memset(u8* arg0, u8* arg1, s32 arg2);
-
-extern u8 *func_802998EC(int);
-
-extern void osWritebackDCache__0x0000__secure_call(void *, s32);
-
-RECOMP_PATCH void func_80292BD0(s32 arg0, u8* arg1, s32 arg2) {
-    s32 size;
-    s32 i;
-    u16 var_s5;
-    s32 temp_s4;
-    u8* sp44;
-    s32 temp_v0_3;
-
-    sp44 = arg1;
-    D_802A1D90 = 1;
-    D_802B0310 = func_802998EC(0x400);
-    D_802B0314 = 0x3BE;
-    Libc_Memset(D_802B0310, 0, 0x400);
-    var_s5 = 0;
-    while (arg2 != 0) {
-        var_s5 >>= 1;
-        if (!(var_s5 & 0x100)) {
-            var_s5 = func_80226304(arg0) | 0xFF00;
-        }
-        if (var_s5 & 1) {
-            D_802B0310[D_802B0314] = (*arg1++) = func_80226304(arg0);
-            arg2 -= 1;
-            D_802B0314++;
-            D_802B0314 &= 0x3FF;
-        } else {
-            temp_s4 = func_80226304(arg0);
-            temp_v0_3 = func_80226304(arg0);
-            temp_s4 |= ((temp_v0_3 & ~0x3F) * 4);
-            gGlobalOverlayROM_Offset = temp_s4;
-            size = (temp_v0_3 & 0x3F) + 3;
-            for (i = 0; i < size; i++) {
-                D_802B0310[D_802B0314] = (*arg1++) = D_802B0310[(temp_s4 + i) & 0x3FF];
-                D_802B0314++;
-                D_802B0314 &= 0x3FF;
-            }
-            arg2 -= i;
-        }
-    }
-    //osWritebackDCache__0x0000__secure_call((void*)(((u32) (sp44 + 0xF) >> 4) * 0x10), ((u32) (arg2 + 0xF) >> 4) * 0x10);
-    func_8029ADCC(D_802B0310);
-    D_802A1D90 = 0;
-}
-
-extern int (*D_802A532C)();
-
-extern void func_ovl1_1_80043010(void); 
-extern void func_ovl1_2_800430A0(void); 
-extern void func_ovl1_3_80043010(void); 
-extern void func_ovl1_4_80043010(void); 
-extern void func_ovl2_1_80046C88(void); 
-extern void func_ovl2_2_8004664C(void); 
-extern void func_ovl2_3_80046A24(void); 
-extern void func_ovl2_4_800445F8(void); 
-extern void func_ovl2_5_80047AF4(void); 
-extern void func_ovl2_6_80044F68(void); 
-extern void func_ovl3_1_80044108(void); 
-extern void func_ovl3_2_800478EC(void); 
-extern void func_ovl3_3_80047198(void); 
-extern void func_ovl3_4_80043110(void); 
-extern void func_ovl3_5_80043E04(void); 
-extern void func_ovl3_6_80043C48(void); 
-extern void func_ovl3_7_80043010(void); 
-extern void func_ovl4_1_80047074(void); 
-extern void func_ovl4_2_8004639C(void); 
-extern void func_ovl4_3_8004391C(void); 
-extern void func_ovl4_4_80043ACC(void); 
-extern void func_ovl4_5_80043970(void); 
-extern void func_ovl4_6_80045364(void); 
-extern void func_ovl4_7_800445B4(void); 
-extern void func_ovl4_8_80043888(void); 
-extern void func_ovl4_9_80043FB4(void); 
-extern void func_ovl4_10_80043450(void);
-// TODO
-
-// No longer necessary.
-/*
-RECOMP_PATCH void func_802268F4(void) {
-    switch(gOverlayID) {
-        case LOADED_OVL_1_SUBOVL_1:   func_ovl1_1_80043010(); return;
-        case LOADED_OVL_1_SUBOVL_2:   func_ovl1_2_800430A0(); return;
-        case LOADED_OVL_1_SUBOVL_3:   func_ovl1_3_80043010(); return;
-        case LOADED_OVL_1_SUBOVL_4:   func_ovl1_4_80043010(); return;
-        case LOADED_OVL_2_SUBOVL_1:   func_ovl2_1_80046C88(); return;
-        case LOADED_OVL_2_SUBOVL_2:   func_ovl2_2_8004664C(); return;
-        case LOADED_OVL_2_SUBOVL_3:   func_ovl2_3_80046A24(); return;
-        case LOADED_OVL_2_SUBOVL_4:   func_ovl2_4_800445F8(); return;
-        case LOADED_OVL_2_SUBOVL_5:   func_ovl2_5_80047AF4(); return;
-        case LOADED_OVL_2_SUBOVL_6:   func_ovl2_6_80044F68(); return;
-        case LOADED_OVL_3_SUBOVL_1:   func_ovl3_1_80044108(); return;
-        case LOADED_OVL_3_SUBOVL_2:   func_ovl3_2_800478EC(); return;
-        case LOADED_OVL_3_SUBOVL_3:   func_ovl3_3_80047198(); return;
-        case LOADED_OVL_3_SUBOVL_4:   func_ovl3_4_80043110(); return;
-        case LOADED_OVL_3_SUBOVL_5:   func_ovl3_5_80043E04(); return;
-        case LOADED_OVL_3_SUBOVL_6:   func_ovl3_6_80043C48(); return;
-        case LOADED_OVL_3_SUBOVL_7:   func_ovl3_7_80043010(); return;
-        case LOADED_OVL_4_SUBOVL_1:   func_ovl4_1_80047074(); return;
-        case LOADED_OVL_4_SUBOVL_2:   func_ovl4_2_8004639C(); return;
-        case LOADED_OVL_4_SUBOVL_3:   func_ovl4_3_8004391C(); return;
-        case LOADED_OVL_4_SUBOVL_4:   func_ovl4_4_80043ACC(); return;
-        case LOADED_OVL_4_SUBOVL_5:   func_ovl4_5_80043970(); return;
-        case LOADED_OVL_4_SUBOVL_6:   func_ovl4_6_80045364(); return;
-        case LOADED_OVL_4_SUBOVL_7:   func_ovl4_7_800445B4(); return;
-        case LOADED_OVL_4_SUBOVL_8:   func_ovl4_8_80043888(); return;
-        case LOADED_OVL_4_SUBOVL_9:   func_ovl4_9_80043FB4(); return;
-        case LOADED_OVL_4_SUBOVL_10:  func_ovl4_10_80043450(); return;
-        case LOADED_OVL_5_SUBOVL_1:   func_ovl5_1_80045A00(); return;
-        case LOADED_OVL_5_SUBOVL_2:   func_ovl5_2_80044A50(); return;
-        case LOADED_OVL_5_SUBOVL_3:   func_ovl5_3_80044CBC(); return;
-        case LOADED_OVL_5_SUBOVL_4:   func_ovl5_4_80045160(); return;
-        case LOADED_OVL_5_SUBOVL_5:   func_ovl5_5_80043A94(); return;
-        case LOADED_OVL_5_SUBOVL_6:   func_ovl5_6_80045510(); return;
-        case LOADED_OVL_5_SUBOVL_7:   func_ovl5_7_80043660(); return;
-        case LOADED_OVL_6_SUBOVL_1:   func_ovl6_1_8004448C(); return;
-        case LOADED_OVL_6_SUBOVL_2:   func_ovl6_2_80043A50(); return;
-        case LOADED_OVL_6_SUBOVL_3:   func_ovl6_3_80043E2C(); return;
-        case LOADED_OVL_6_SUBOVL_4:   func_ovl6_4_80043FB8(); return;
-        case LOADED_OVL_6_SUBOVL_5:   func_ovl6_5_80043C48(); return;
-        case LOADED_OVL_6_SUBOVL_6:   return;
-        case LOADED_OVL_6_SUBOVL_7:   return;
-        case LOADED_OVL_6_SUBOVL_8:   return;
-        case LOADED_OVL_6_SUBOVL_9:   return;
-        case LOADED_OVL_6_SUBOVL_10:  return;
-        case LOADED_OVL_6_SUBOVL_11:  return;
-        case LOADED_OVL_6_SUBOVL_12:  return;
-        case LOADED_OVL_6_SUBOVL_13:  return;
-        case LOADED_OVL_6_SUBOVL_14:  return;
-        case LOADED_OVL_6_SUBOVL_15:  return;
-        case LOADED_OVL_7_SUBOVL_1:   return;
-        case LOADED_OVL_7_SUBOVL_2:   return;
-        case LOADED_OVL_7_SUBOVL_3:   return;
-        case LOADED_OVL_7_SUBOVL_4:   return;
-        case LOADED_OVL_7_SUBOVL_5:   return;
-        case LOADED_OVL_7_SUBOVL_6:   return;
-        case LOADED_OVL_7_SUBOVL_7:   return;
-        case LOADED_OVL_7_SUBOVL_8:   return;
-        case LOADED_OVL_7_SUBOVL_9:   return;
-        case LOADED_OVL_7_SUBOVL_10:  return;
-        case LOADED_OVL_8_SUBOVL_1:   return;
-        case LOADED_OVL_8_SUBOVL_2:   return;
-        case LOADED_OVL_8_SUBOVL_3:   return;
-        case LOADED_OVL_8_SUBOVL_4:   return;
-        case LOADED_OVL_8_SUBOVL_5:   return;
-        case LOADED_OVL_8_SUBOVL_6:   return;
-        case LOADED_OVL_8_SUBOVL_7:   return;
-        case LOADED_OVL_8_SUBOVL_8:   return;
-        case LOADED_OVL_8_SUBOVL_9:   return;
-        case LOADED_OVL_8_SUBOVL_10:  return;
-        case LOADED_OVL_8_SUBOVL_11:  return;
-        case LOADED_OVL_8_SUBOVL_12:  return;
-        case LOADED_OVL_8_SUBOVL_13:  return;
-        case LOADED_OVL_9_SUBOVL_1:   return;
-        case LOADED_OVL_9_SUBOVL_2:   return;
-        case LOADED_OVL_9_SUBOVL_3:   return;
-        case LOADED_OVL_9_SUBOVL_4:   return;
-        case LOADED_OVL_9_SUBOVL_5:   return;
-        case LOADED_OVL_9_SUBOVL_6:   return;
-        case LOADED_OVL_10_SUBOVL_1:  return;
-        case LOADED_OVL_10_SUBOVL_2:  return;
-        case LOADED_OVL_11_SUBOVL_1:  return;
-        case LOADED_OVL_11_SUBOVL_2:  return;
-        case LOADED_OVL_12_SUBOVL_1:  return;
-        case LOADED_OVL_12_SUBOVL_2:  return;
-        case LOADED_OVL_13_SUBOVL_1:  return;
-        case LOADED_OVL_14_SUBOVL_1:  return;
-        case LOADED_OVL_14_SUBOVL_2:  return;
-        case LOADED_OVL_14_SUBOVL_3:  return;
-        case LOADED_OVL_14_SUBOVL_4:  return;
-        case LOADED_OVL_14_SUBOVL_5:  return;
-        case LOADED_OVL_14_SUBOVL_6:  return;
-        case LOADED_OVL_14_SUBOVL_7:  return;
-        case LOADED_OVL_14_SUBOVL_8:  return;
-        case LOADED_OVL_14_SUBOVL_9:  return;
-        case LOADED_OVL_14_SUBOVL_10: return;
-        case UNSUPPORTED_OVERLAY:
-        default: // unsupported overlay.
-            while(1)
-                ;
-    }
-    //D_802A532C();
-}
-*/
-
-extern Gfx D_8029F718[];
-extern Gfx D_8029F6D8[];
 extern Gfx D_200000[];
+extern u8 D_1000000[];
 
-extern u8 *D_802A5390;
-extern u32 D_802A5388;
+extern u8 D_80100000[2][320 * 240 * sizeof(u16)];
+extern GfxWork gGfxWork[];
 
-extern s32 D_80100000;
-extern u8 D_8014C8D0[];
-extern s32 D_8029F5E0;
-extern s32 D_8029F5F8;
+extern u8 D_8019A8D0[];
+extern u8 D_801E56C0[];
+
+extern s32 gFrontBufferID;
+extern s32 gDrawBackdrop;
+extern s32 gPauseRender;
+extern s32 gDrawBackdropRedColor;
+extern s32 gDrawBackdropGreenColor;
+extern s32 gDrawBackdropBlueColor;
+extern s32 gMotionBlur;
+extern s32 gMotionBlurStrength;
+extern OSMesg D_8029F600;
+extern OSScTask D_8029F608[2];
+
+extern Gfx D_8029F6D8[];
+extern Gfx D_8029F718[];
+extern Gfx D_8029F7A0[];
+
+extern u8 D_802A4840[];
+
+extern OSMesgQueue D_802A5330;
 extern s32 D_802A5368;
+
+// .bss
+extern s32 gUsedBuffers[4];
+
+extern Gfx *gBufferEnds[];
+extern u32 gBackBufferID;
+extern GfxWork* gGfxWorkPtr;
 extern Gfx* gMasterDisplayList; // D_802A5390
+extern s32 gScreenUlx;
+extern s32 gScreenUly;
+extern s32 gScreenLrx;
+extern s32 gScreenLry;
 
-void func_802272B0(Gfx** gfxP);
+extern OSMesgQueue D_802A5348;
+extern OSMesg D_802A5360;
+extern OSMesg D_802A5364;
+extern s32 D_802A5374;
+extern s32 D_802A5378;
+extern OSMesg D_802A5394;
+extern OSMesg D_802A5398;
+extern OSMesgQueue D_802A53A0;
+extern OSMesg D_802A53B8;
+extern s32 D_802A53CC;
+extern s32 D_802A5800;
 
-RECOMP_PATCH Gfx *func_80227464(void) {
-    D_802A5388 = (D_8029F5E0 == 0) ? 1 : 0;
-    D_802A538C = &D_8014C8D0[D_802A5388 * 0x27000];
-    gMasterDisplayList = (Gfx *)((u8*)(D_802A538C) + 0x24000);
+/*
+RECOMP_PATCH Gfx *Gfx_InitGfx(void) {
+    gBackBufferID = gFrontBufferID; // we are now using the back buffer to start a new frame rendering.
+    gGfxWorkPtr = &gGfxWork[gBackBufferID];
+    gMasterDisplayList = &gGfxWorkPtr->main;
     D_802A5368 = 0;
+    static int frameCount = 0;
 
-    gEXEnable(gMasterDisplayList++);
-    gEXSetRectAspect(gMasterDisplayList++, G_EX_ASPECT_STRETCH);
+    //gEXEnable(gMasterDisplayList++);
+    //gEXSetRefreshRate(gMasterDisplayList++, 60); // this game runs at a native 60.
+
+    // this is a STUPID hack to ensure the copyright screen isnt stretched.
+    if (frameCount == 530) {
+        //gEXSetRectAspect(gMasterDisplayList++, G_EX_ASPECT_STRETCH);
+    } else {
+        frameCount++;
+    }
 
     gSPSegment(gMasterDisplayList++, 0x00, 0x00000000);
-    gSPSegment(gMasterDisplayList++, 0x01, (void* ) (((u32)D_802A5388 * 0x25800) + 0x80000000 + (u8*)&D_80100000));
+    gSPSegment(gMasterDisplayList++, 0x01, (void* ) ((u8*)&D_80100000[gBackBufferID] + 0x80000000));
     gSPDisplayList(gMasterDisplayList++, D_8029F718);
-    if (D_8029F5F8 != 0) {
+    if (gMotionBlur != 0) {
         gDPSetColorDither(gMasterDisplayList++, G_CD_DISABLE);
     } else {
         gDPSetColorDither(gMasterDisplayList++, G_CD_MAGICSQ);
@@ -963,79 +541,25 @@ RECOMP_PATCH Gfx *func_80227464(void) {
     gSPDisplayList(gMasterDisplayList++, D_8029F6D8);
     gDPSetDepthImage(gMasterDisplayList++, D_200000);
     gDPPipeSync(gMasterDisplayList++);
-    gDPSetScissor(gMasterDisplayList++, G_SC_NON_INTERLACE, 8, 6, 311, 233);
-    
-    func_802272B0(&gMasterDisplayList);
+    gDPSetScissor(gMasterDisplayList++, G_SC_NON_INTERLACE, 0, 0, 320, 240);
+    Gfx_DrawBackdrop(&gMasterDisplayList);
     gSPSetGeometryMode(gMasterDisplayList++, G_ZBUFFER | G_CULL_BACK | G_LIGHTING);
     gDPSetRenderMode(gMasterDisplayList++, G_RM_AA_ZB_TEX_EDGE, G_RM_AA_ZB_TEX_EDGE2);
     return gMasterDisplayList;
 }
-
-extern u8 D_1000000[];
-extern u8 D_8029F7A0[];
-
-extern s32 D_802A53C0;
-extern s32 D_802A53C4;
-extern s32 D_802A53C8;
-extern s32 D_802A53CC;
-
-extern s32 D_8029F5E4;
-
-extern s32 D_8029F5EC; // r
-extern s32 D_8029F5F0; // g
-extern s32 D_8029F5F4; // b
-
-extern s32 D_802A53C4;
-extern s32 D_802A53C8;
-
-extern s32 D_802A53BC;
-
-/*
-RECOMP_PATCH void func_802272B0(Gfx** gfxP) {
-    Gfx *gfx = *gfxP;
-
-    gSPDisplayList(gfx++, D_8029F7A0);
-    gDPFillRectangle(gfx++, D_802A53BC, D_802A53C0, D_802A53C4 - 1, D_802A53C8 - 1);
-    gDPPipeSync(gfx++);
-    gDPSetColorImage(gfx++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 424, D_1000000);
-    if (D_8029F5E4 != 0) {
-        gDPSetFillColor(gfx++, (GPACK_RGBA5551(D_8029F5EC, D_8029F5F0, D_8029F5F4, 1) << 0x10) | GPACK_RGBA5551(D_8029F5EC, D_8029F5F0, D_8029F5F4, 1));
-        gDPFillRectangle(gfx++, D_802A53BC, D_802A53C0, D_802A53C4 - 1, D_802A53C8 - 1);
-        gDPPipeSync(gfx++);
-    }
-    gDPSetCycleType(gfx++, G_CYC_1CYCLE);
-    *gfxP = gfx;
-}
 */
-
-extern s32 D_8029F5EC;
-extern s32 D_8029F5F0;
-extern s32 D_8029F5F4;
-
-// set color
-RECOMP_PATCH void func_802276E0(s32 arg0, s32 arg1, s32 arg2) {
-    D_8029F5EC = arg0;
-    D_8029F5F0 = arg1;
-    D_8029F5F4 = arg2;
-}
 
 u8* Libc_Memset(u8* arg0, u8* arg1, s32 arg2);
 void func_80225CA8();                         /* extern */
 void func_80226860();                         /* extern */
-void func_80226D80();                         /* extern */
-void func_80226E84(void *);                   /* extern */
 void func_80227708(s32, s32, s32, s32);       /* extern */
-s32 func_8022773C();                          /* extern */
 void func_802277D0();                         /* extern */
-void func_8022787C(Gfx** mainGfx);
+void func_8022787C(Gfx **);                  /* extern */
 void func_802290CC();                         /* extern */
 void func_8022A858();                         /* extern */
 s32 func_80232E60();                          /* extern */
 s32 func_802341C8();                          /* extern */
 s32 func_80237890();                          /* extern */
-s32 func_80238100();                          /* extern */
-s32 func_802381F8();                          /* extern */
-s32 func_8023876C(s32, s32, s32);             /* extern */
 s32 func_8023A104();                          /* extern */
 s32 func_8023A208();                          /* extern */
 s32 func_8023A22C();                          /* extern */
@@ -1051,47 +575,153 @@ s32 func_802817D0();                          /* extern */
 s32 func_80292B54();                          /* extern */
 s32 func_80294E54();                          /* extern */
 s32 func_80297D20();                          /* extern */
-u64 osGetTime__0x0000__secure_call();                          /* extern */
-s32 osViSetSpecialFeatures__0x0000__secure_call(s32);                       /* extern */
-s32 osViBlack__0x0000__secure_call(s32);                       /* extern */
+void *func_802998EC(s32);                       /* extern */
 extern u8 D_80063000[];
 extern u8 D_800BEA60[];
-extern s32 D_8029F570;
-extern s32 D_8029F590;
 extern s32 D_802A1230;
 extern s32 D_802A1234;
 extern s32 D_802A123C;
 extern u8 D_802A5300[];
+
+struct UnkStruct802AC5C0 {
+    u16 unk0;
+    u16 unk2;
+    u16 unk4;
+    u16 unk6;
+    u16 unk8;
+    u16 unkA;
+    u16 unkC;
+    u16 unkE;
+    char pad10[0x4C];
+    f32 unk5C;
+    f32 unk60;
+    f32 unk64;
+    f32 unk68;
+};
+
 extern struct UnkStruct802AC5C0 *D_802AC5C0;
 extern u8 D_802B36D0[];
-extern s32 func_802334CC;
-extern s32 func_80236F54;
-extern void set_secure_call_arr__0x0000__secure_call(int, void *);
+extern void func_802334CC();
+extern void func_80236F54();
 
+extern void ThreadProc_Init(OSThread *thread, s32 baseID, s32 basePri);
 extern void HuPrcInit(void);
 extern void HuPrcCall(void);
+extern s32 HuPrcCreate(void *func, s32 arg1, void* arg2, s32 arg3, u16 pri);
+extern void ThreadProc_RunQueuedThreads(void);
+extern void func_802381F8(void);
 
-RECOMP_PATCH void func_80225840(s32 arg0)
-{
-    u8 *temp_s0; 
+extern int (*D_802A532C)();
+
+extern Lights2 D_8029F7F8;
+
+struct FrameBuffer {
+    Vp unk_00;
+    u32 enabled;
+    u32 unk14;
+    Mtx unk_18;
+    u32 unk58;
+    f32 ulx;
+    f32 uly;
+    f32 lrx;
+    f32 lry;
+};
+
+extern struct FrameBuffer gFrameBuffers[];
+
+extern Mtx* D_802A538C;
+extern Mtx D_802A53D8;
+
+extern u16 D_802A53D0;
+
+typedef unsigned int uintptr_t;
+
+void *Libc_Memcpy(uintptr_t dest, uintptr_t source, s32 c);
+
+/*
+RECOMP_PATCH void func_8022787C(Gfx** mainGfx) {
+    Gfx* gfx;
+    s32 i;
+    struct FrameBuffer *buffer;
+
+    gfx = *mainGfx;
+
+    gSPSetLights2(gfx++, D_8029F7F8);
+    gSPPerspNormalize(gfx++, D_802A53D0);
+
+    for (i = 0; i < 4; i++) {
+        buffer = &gFrameBuffers[i];
+        if ((buffer->enabled) && (buffer->unk58 != 0)) {
+            Libc_Memcpy((uintptr_t)gGfxWorkPtr + (D_802A5368 * sizeof(Mtx)), (uintptr_t)&D_802A53D8, sizeof(Mtx));
+            gSPMatrix(gfx++, (uintptr_t)gGfxWorkPtr + (D_802A5368 * sizeof(Mtx)), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+            D_802A5368++;
+            gSPViewport(gfx++, &buffer->unk_00);
+            Libc_Memcpy((uintptr_t)gGfxWorkPtr + (D_802A5368 * sizeof(Mtx)), (uintptr_t)&buffer->unk_18, sizeof(Mtx));
+            gSPMatrix(gfx++, (uintptr_t)gGfxWorkPtr + (D_802A5368 * sizeof(Mtx)), G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
+            D_802A5368++;
+            gDPSetScissor(gfx++, G_SC_NON_INTERLACE, buffer->ulx, buffer->uly, buffer->lrx, buffer->lry);
+            gSPDisplayList(gfx++, Gfx_GetSubDLPtr(buffer->unk14));
+        }
+    }
+    *mainGfx = gfx;
+    //osWritebackDCache(buffer, 0x1C0);
+}
+*/
+
+
+extern void osViSetSpecialFeatures__0x0000__secure_call(s32);
+void func_80227D50(struct UnkStruct802AC5C0* arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
+
+RECOMP_PATCH void Gfx_SetScreenCoords(s32 ulx, s32 uly, s32 width, s32 height) {
+    ulx = 0;
+    uly = 0;
+    width = 320;
+    height = 240;
+    gScreenUlx = ulx;
+    gScreenUly = uly;
+    gScreenLrx = (ulx + width);
+    gScreenLry = (uly + height);
+}
+
+RECOMP_PATCH void func_80227D50(struct UnkStruct802AC5C0* arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4) {
+    arg1 = 0;
+    arg2 = 0;
+    arg3 = 320;
+    arg4 = 240;
+    arg0->unk0 = (arg3 << 1);
+    arg0->unk2 = (arg4 << 1);
+    arg0->unk4 = 0x1FF;
+    arg0->unk6 = 0;
+    arg0->unk8 = (((arg1 << 1) + arg3) << 1);
+    arg0->unkA = (((arg2 << 1) + arg4) << 1);
+    arg0->unkC = 0x1FF;
+    arg0->unkE = 0;
+    arg0->unk5C = arg1;
+    arg0->unk60 = arg2;
+    arg0->unk64 = ((arg1 + arg3));
+    arg0->unk68 = ((arg2 + arg4));
+}
+
+/*
+RECOMP_PATCH void func_80225840(void *arg0) {
+    void *temp_s0; 
     Gfx *mainGfx;
-    s32 sp3C;  
-    s32 var_s1; 
-    void *temp_v0;
+    s32 id;
+    s32 frameTimer = 8;
+    s32 temp_v0;
 
-    var_s1 = 8;
     func_80297D20();
     Libc_Memset(&D_802A5300, 0, D_802B36D0 - D_802A5300);
     Libc_Memset(&D_80063000, 0, D_800BEA60 - D_80063000);
     func_80225CA8();
-    set_secure_call_arr__0x0000__secure_call(4, &D_8029F570);
-    set_secure_call_arr__0x0000__secure_call(5, &D_8029F590);
+    set_secure_call_arr(4, &D_8029F570);
+    set_secure_call_arr(5, &D_8029F590);
     func_802341C8();
-    func_8023876C(arg0, 0xA, 0xA);
-    osViSetSpecialFeatures__0x0000__secure_call(2);
-    osViSetSpecialFeatures__0x0000__secure_call(4);
-    osViSetSpecialFeatures__0x0000__secure_call(0x40);
-    osViSetSpecialFeatures__0x0000__secure_call(0x10);
+    ThreadProc_Init(arg0, 0xA, 0xA); // <--------- this will call osCreateScheduler
+    osViSetSpecialFeatures__0x0000__secure_call(OS_VI_GAMMA_OFF);
+    osViSetSpecialFeatures__0x0000__secure_call(OS_VI_GAMMA_DITHER_ON);
+    osViSetSpecialFeatures__0x0000__secure_call(OS_VI_DITHER_FILTER_ON);
+    osViSetSpecialFeatures__0x0000__secure_call(OS_VI_DIVOT_ON);
     HuPrcInit();
     func_8023A318();
     func_8023A22C();
@@ -1105,84 +735,137 @@ RECOMP_PATCH void func_80225840(s32 arg0)
     func_802817D0();
     func_80292B54();
     func_802277D0();
-    func_80226D80();
+    Gfx_CreateRenderThread();
     func_8025E16C();
-    sp3C = func_8022773C();
+    id = Gfx_GetAvailableBuffer();
     func_8026C77C();
-    g_initRandom(osGetTime__0x0000__secure_call());
-    temp_s0 = func_802998EC(0x1000);
+    g_initRandom(osGetTime());
+    temp_s0 = func_802998EC(0x1000); // mistake. This is secure mapped via the earlier set_secure_call_arr(5) call. Hudson called the unsecure function.
     func_80237890();
-    HuPrcCreate(&func_80236F54, 0, temp_s0, 0x1000, 0x401);
+    HuPrcCreate(&func_80236F54, 0, (void*)temp_s0, 0x1000, 0x401);
     HuPrcCreate(&func_802334CC, 0, 0, 0, 0x402);
     func_8023A208();
     func_8023A3E0();
     func_80265C04();
 
     while (TRUE) {
-        func_8023A104();
-        mainGfx = func_80227464();
-        func_80238100();
-        func_802381F8();
-        HuPrcCall();
-        
-        func_8022787C(&mainGfx);
-        func_802290CC();
+        func_8023A104();           // receive message from the cont mesg queue and run osContGetReadData
+        mainGfx = Gfx_InitGfx();   // init gfx
+        ThreadProc_RunQueuedThreads();           // get thread pri/start some kind of thread.
+        func_802381F8();           // yield to that thread.
+        HuPrcCall();               // run Hudson processes.
+        func_8022787C(&mainGfx);   // process frame buffers (4 in the array).
+        func_802290CC();           // something related to 3D model animations. stubbing this makes bomberman invisible and all objects "stop" animating.
 
-        temp_v0 = func_80227678(sp3C);
-        gSPDisplayList(mainGfx++, temp_v0);
-        
+        temp_v0 = Gfx_GetSubDLPtr(id);      // get ptr to main DL buffer to push to display list
+        gSPDisplayList(mainGfx++, temp_v0); // put it on the list.
 
-        func_8025E1D4(&mainGfx);
-        func_8026C208();
-        func_8023A208();
-        func_80226E84(mainGfx);
+        func_8025E1D4(&mainGfx); // soft reset video effect
+        func_8026C208();         // does something with audio
+        func_8023A208();         // run osContStartReadData
+        Gfx_EndRender(mainGfx);  // do wait/queue/mesg thing?
 
-        if (var_s1 == 0) {
+        // if frame timer is already at 0, ignore the bottom part.
+        if (frameTimer == 0) {
             continue;
         }
 
-        if (--var_s1 != 0) {
+        // decrement it. If the decrement resulted in a 0, run the below code, this will result in the below code running once.
+        if (--frameTimer != 0) {
             continue;
         }
 
+        // on the 8th frame, run these once. Otherwise, the loop is the above.
         func_80227D50(D_802AC5C0, 8, 6, 304, 228);
-        func_80227708(8, 6, 304, 228);
-        osViBlack__0x0000__secure_call(0);
+        Gfx_SetScreenCoords(8, 6, 304, 228);
+        osViBlack(0);
     }
 }
+*/
 
-RECOMP_PATCH void func_8022787C(Gfx** mainGfx) {
-    struct UnkStruct800BD5B0 *temp_s5;
-    struct UnkStruct800BD5B0 *var_s0;
-    Gfx* gfx;
-    s32 i;
-    
-    gfx = *mainGfx;
-
-    gSPSetLights2(gfx++, D_8029F800);
-    gSPPerspNormalize(gfx++, D_802A53D0);
-
-    var_s0 = &gFrameBuffers;
-
-    for (i = 0; i < 4; i++) {
-        temp_s5 = &gFrameBuffers[i];
-        if ((temp_s5->unk10 != 0) && (temp_s5->unk58 != 0)) {
-            Libc_Memcpy((uintptr_t)D_802A538C + (D_802A5368 * sizeof(Mtx)), (uintptr_t)&D_802A53D8, sizeof(Mtx));
-            gSPMatrix(gfx++, (uintptr_t)D_802A538C + (D_802A5368 * sizeof(Mtx)), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
-            D_802A5368++;
-            gSPViewport(gfx++, &temp_s5->unk_00);
-            Libc_Memcpy((uintptr_t)D_802A538C + (D_802A5368 * sizeof(Mtx)), (uintptr_t)&temp_s5->unk_18, sizeof(Mtx));
-            gSPMatrix(gfx++, (uintptr_t)D_802A538C + (D_802A5368 * sizeof(Mtx)), G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
-            D_802A5368++;
-            gDPSetScissor(gfx++, G_SC_NON_INTERLACE, temp_s5->unk5C, temp_s5->unk60, temp_s5->unk64, temp_s5->unk68);
-            gSPDisplayList(gfx++, func_80227678(temp_s5->unk14));
-        }
-    }
-    *mainGfx = gfx;
-    //osWritebackDCache(temp_s5, 0x1C0);
-}
-
+/*
 RECOMP_PATCH void func_802268F4(void) {
-    gEXSetRectAspect(gMasterDisplayList++, G_EX_ASPECT_AUTO);
     D_802A532C();
+}
+*/
+
+extern void func_80237D4C(s32);
+extern void func_80237AE4(s32 *, OSMesgQueue *);
+extern void func_80237A90(OSScTask *t);
+extern void func_80237A70(OSMesgQueue *, s32 *);
+extern void func_8022997C(void);
+
+// @recomp Set up the message queue and event for waiting on DL completion.
+OSMesgQueue dl_complete_queue;
+OSMesg dl_complete_queue_buf;
+
+RECOMP_EXPORT void startGfxWait(Gfx *gfx_start) {
+    osCreateMesgQueue(&dl_complete_queue, &dl_complete_queue_buf, 1);
+    osExQueueDisplaylistEvent(&dl_complete_queue, NULL, gfx_start, OS_EX_DISPLAYLIST_EVENT_PARSED);
+}
+
+RECOMP_EXPORT void waitForGfxFinish(void) {
+    // @recomp Wait for the displaylist to be completed after submitting it. This removes the race condition
+    // that exists with vertex modifications for texture scrolling.
+    osRecvMesg(&dl_complete_queue, NULL, OS_MESG_BLOCK);
+}
+
+/**
+ * The thread for constructing the gfx task to send to the renderer.
+ */
+RECOMP_PATCH void Gfx_Render(void *unused) {
+    OSScClient sp80;
+    OSMesgQueue sp68;
+    OSMesg sp64;
+    u32 bufferIDbackup;
+    OSMesg sp5C;
+    OSScTask *scTask;
+    OSMesg sp54;
+
+    func_80237D4C(0);
+    osCreateMesgQueue(&sp68, &sp64, 1);
+    func_80237AE4(&sp80, &sp68);
+    gFrontBufferID = 0;
+
+    while(1) {
+        if (D_802A5330.validCount >= D_802A5330.msgCount) {
+            //osRecvMesg(&D_802A5330, &sp54, 1);
+        }
+        // @recomp this extra wait is probably used to deal with lag, but it causes
+        // recomp to run this function at 30 FPS. Stub the extra wait, as this is
+        // not necessary.
+        //osRecvMesg(&D_802A5330, &D_802A5398, 0);
+
+        // the current ID is considered the front. Get ready to use it to build the final task to send.
+        bufferIDbackup = gFrontBufferID;
+
+        // switch the ID for everything else.
+        gFrontBufferID ^= 1;
+
+        D_802A5800 = 0;
+
+        scTask = &D_8029F608[bufferIDbackup];
+        scTask->framebuffer = (u8*)&D_80100000[bufferIDbackup];
+        scTask->list.t.ucode_boot = rspbootTextStart;
+        scTask->list.t.ucode_boot_size = (u32)rspbootTextEnd - (u32)rspbootTextStart;
+        scTask->list.t.ucode = rspbootTextEnd;
+        scTask->list.t.ucode_data = D_802A4840;
+        scTask->list.t.dram_stack = D_8019A8D0;
+        scTask->list.t.output_buff = D_801E56C0;
+        scTask->list.t.output_buff_size = (u64 *) (((u32) D_801E56C0)) + 0x10000;
+        scTask->list.t.data_ptr = &gGfxWork[bufferIDbackup].main;
+        scTask->list.t.data_size = (gBufferEnds[bufferIDbackup] - gGfxWork[bufferIDbackup].main) * sizeof(Gfx);
+        scTask->msgQ = &D_802A53A0;
+        scTask->msg = &D_802A53B8;
+        //osWritebackDCache(gGfxWorkPtr, 0x10000);
+
+        startGfxWait(&gGfxWork[bufferIDbackup].main);
+
+        func_80237A90(scTask);
+        func_80237A70(&D_802A53A0, &sp5C);
+
+        waitForGfxFinish();
+        func_8022997C();
+        D_802A5394 = D_802A5398;
+    }
 }

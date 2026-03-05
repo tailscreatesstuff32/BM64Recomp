@@ -82,3 +82,4 @@ recomp_process_yield = 0x8F000118;
 recomp_process_switch_to = 0x8F00011C;
 recomp_process_is_started = 0x8F000120;
 recomp_process_set_started = 0x8F000124;
+osExQueueDisplaylistEvent_recomp = 0x8F000128;
