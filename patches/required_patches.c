@@ -842,7 +842,8 @@ RECOMP_PATCH void Gfx_Render(void *unused) {
 
 RECOMP_EXPORT void printGbi(const char *stringAddr) {
     if (gMasterDisplayList) {
-        gEXPrint(gMasterDisplayList++, stringAddr);
+        // UNSUPPORTED
+        //gEXPrint(gMasterDisplayList++, stringAddr);
     } else {
         recomp_printf("printGbi was called, but gMasterDisplayList is not yet initialized. Function: %s\n", stringAddr);
     }
@@ -967,6 +968,7 @@ struct TextureTrack {
 // At this time, this only supports 1 tracked texture at a time.
 struct TextureTrack gTrackedTexture = {
     0, // disabled
+    0,
     0,
     0,
 };
