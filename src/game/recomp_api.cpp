@@ -106,6 +106,38 @@ extern "C" void recomp_get_target_aspect_ratio(uint8_t* rdram, recomp_context* c
     }
 }
 
+extern "C" void recomp_get_target_hud_aspect_ratio(uint8_t* rdram, recomp_context* ctx) {
+    ultramodern::renderer::GraphicsConfig graphics_config = ultramodern::renderer::get_graphics_config();
+    float original = _arg<0, float>(rdram, ctx);
+    float current;
+    int width, height;
+    recompui::get_window_size(width, height);
+
+    if (graphics_config.ar_option == ultramodern::renderer::AspectRatio::Original) {
+        _return(ctx, original);
+        return;
+    }
+
+    current = static_cast<float>(width) / height;
+
+    switch (graphics_config.hr_option) {
+        case ultramodern::renderer::HUDRatioMode::Original:
+        default:
+            _return(ctx, original);
+            return;
+        case ultramodern::renderer::HUDRatioMode::Clamp16x9:
+            if (current < (16.0f / 9.0f)) {
+                _return(ctx, std::max(current, original));
+            } else {
+                _return(ctx, 16.0f / 9.0f);
+            }
+            return;
+        case ultramodern::renderer::HUDRatioMode::Full:
+            _return(ctx, std::max(current, original));
+            return;
+    }
+}
+
 extern "C" void recomp_get_targeting_mode(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, static_cast<int>(zelda64::get_targeting_mode()));
 }
