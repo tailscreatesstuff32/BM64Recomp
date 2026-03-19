@@ -1568,6 +1568,7 @@ extern s32 D_802A0764[];
 extern s32 D_802A076C[];
 extern s32 D_802A079C;
 
+// draw HUD
 RECOMP_PATCH void func_80242270(s32 arg0, Gfx** gfxP) {
     s32 i;
     s32 j;
@@ -1607,7 +1608,8 @@ RECOMP_PATCH void func_80242270(s32 arg0, Gfx** gfxP) {
         digits /= 10;
     }
 
-    gfx = *gfxP;
+    gfx = *gfxP;    
+
     gDPSetRenderMode(gfx++, G_RM_AA_TEX_EDGE, G_RM_AA_TEX_EDGE2);
     gDPSetCombineMode(gfx++, G_CC_DECALRGBA, G_CC_DECALRGBA);
     gSPTexture(gfx++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
@@ -1619,7 +1621,24 @@ RECOMP_PATCH void func_80242270(s32 arg0, Gfx** gfxP) {
         struct UnkStruct802A0758* var_t5 = D_802A0758;
         gDPLoadTLUT_pal256(gfx++, var_t5->unk20[D_802A0774[i].unk0][0] + (u32)var_t5);
         gDPLoadTextureBlock_4b(gfx++, var_t5->unk14[D_802A0774[i].unk0][0] + (u32)var_t5, G_IM_FMT_CI, 16, 16, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
-        gEXTextureRectangle(gfx++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_NONE, D_802A0774[i].unk4 - 0x80, D_802A0774[i].unk8, D_802A0774[i].unkC - 0x80, D_802A0774[i].unk10, 0, 0, 0, 0x0400, 0x0400);
+
+        if (i == 0) {
+            // clock
+            gEXPushScissor(gfx++);
+            gEXSetScissor(gfx++, G_SC_NON_INTERLACE, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, 0, 0, 0, 240);
+            gEXSetRectAlign(gfx++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
+            gSPTextureRectangle(gfx++, D_802A0774[i].unk4, D_802A0774[i].unk8, D_802A0774[i].unkC, D_802A0774[i].unk10, 0, 0, 0, 0x0400, 0x0400);
+            gEXSetRectAlign(gfx++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+            gEXPopScissor(gfx++);
+        } else {
+            // gem
+            gEXPushScissor(gfx++);
+            gEXSetScissor(gfx++, G_SC_NON_INTERLACE, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, 0, 0, 0, 240);
+            gEXSetRectAlign(gfx++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -(320) * 4, 0, -(320) * 4, 0);
+            gSPTextureRectangle(gfx++, D_802A0774[i].unk4, D_802A0774[i].unk8, D_802A0774[i].unkC, D_802A0774[i].unk10, 0, 0, 0, 0x0400, 0x0400);
+            gEXSetRectAlign(gfx++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+            gEXPopScissor(gfx++);
+        }        
     }
 
     var_s5 = 0;
@@ -1628,6 +1647,7 @@ RECOMP_PATCH void func_80242270(s32 arg0, Gfx** gfxP) {
     // draw both digit counters
     for(i = 0; i != 2; i++) {
         var_t3 = D_802A0764[i];
+
         for (j = 0; j < D_802A076C[i]; j++) {
             var_t2 = (struct UnkStruct802A075C_InnerC*)(&temp_t5->unkC);
             if ((i == 0) && (D_802AC610.unk28 < D_802AC610.unk30)) {
@@ -1636,11 +1656,30 @@ RECOMP_PATCH void func_80242270(s32 arg0, Gfx** gfxP) {
                 gDPLoadTLUT_pal16(gfx++, 0, var_t2->unk14 + (u32)temp_t5);
             }
             gDPLoadTextureTile_4b(gfx++, var_t2->unk0[D_802AC770[var_s5++]][2] + (u32)temp_t5, G_IM_FMT_CI, 10, 18, 0, 0, 9, 17, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
-            gEXTextureRectangle(gfx++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_NONE, var_t3 << 2, 22 << 2, (var_t3 + 10) << 2, (22 + 18) << 2, 0, 0, 0, 0x0400, 0x0400);
+
+            if (i == 0) {
+                // clock
+                gEXPushScissor(gfx++);
+                gEXSetScissor(gfx++, G_SC_NON_INTERLACE, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, 0, 0, 0, 240);
+                gEXSetRectAlign(gfx++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
+                gSPTextureRectangle(gfx++, var_t3 << 2, 22 << 2, (var_t3 + 10) << 2, (22 + 18) << 2, 0, 0, 0, 0x0400, 0x0400);
+                gEXSetRectAlign(gfx++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+                gEXPopScissor(gfx++);
+            } else {
+                // gem
+                gEXPushScissor(gfx++);
+                gEXSetScissor(gfx++, G_SC_NON_INTERLACE, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, 0, 0, 0, 240);
+                gEXSetRectAlign(gfx++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -(320) * 4, 0, -(320) * 4, 0);
+                gSPTextureRectangle(gfx++, var_t3 << 2, 22 << 2, (var_t3 + 10) << 2, (22 + 18) << 2, 0, 0, 0, 0x0400, 0x0400);
+                gEXSetRectAlign(gfx++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+                gEXPopScissor(gfx++);
+            }
+            
             var_t3 += 10;
         }
     }
     gDPSetTexturePersp(gfx++, G_TP_PERSP);
     gDPSetTextureLUT(gfx++, G_TT_NONE);
+
     *gfxP = gfx;
 }
