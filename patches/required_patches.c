@@ -153,6 +153,74 @@ RECOMP_PATCH void alSeqpSetVol(ALSeqPlayer* seqp, s16 vol) {
     alEvtqPostEvent(&seqp->evtq, &evt, 0);
 }
 
+typedef enum {
+    AL_SNDP_PLAY_EVT,
+    AL_SNDP_STOP_EVT,
+    AL_SNDP_PAN_EVT,
+    AL_SNDP_VOL_EVT,
+    AL_SNDP_PITCH_EVT,
+    AL_SNDP_API_EVT,
+    AL_SNDP_DECAY_EVT,
+    AL_SNDP_END_EVT,
+    AL_SNDP_FX_EVT
+} ALSndpMsgType;
+
+typedef struct {
+    ALVoice     voice;     
+    ALSound     *sound;         /* sound referenced here */
+    s16         priority;
+    f32         pitch;          /* current playback pitch                    */
+    s32         state;          /* play state for this sound                 */
+    s16         vol;            /* volume - combined with volume from bank   */
+    ALPan       pan;            /* pan - 0 = left, 127 = right               */
+    u8          fxMix;          /* wet/dry mix - 0 = dry, 127 = wet          */
+} ALSoundState;
+
+typedef union {
+
+    ALEvent             msg;
+
+    struct {
+        s16             type;
+        ALSoundState    *state;
+    } common;
+    
+    struct {
+        s16             type;
+        ALSoundState    *state;
+        s16             vol;
+    } vol;
+    
+    struct {
+        s16             type;
+        ALSoundState    *state;
+        f32             pitch;
+    } pitch;
+    
+    struct {
+        s16             type;
+        ALSoundState    *state;
+        ALPan           pan;
+    } pan;
+    
+    struct {
+        s16             type;
+        ALSoundState    *state;
+        u8              mix;
+    } fx;
+    
+} ALSndpEvent;
+
+RECOMP_PATCH void alSndpSetVol(ALSndPlayer *sndp, s16 vol) {
+    ALSndpEvent evt;
+    ALSoundState  *sState = sndp->sndState;
+
+    evt.vol.type = AL_SNDP_VOL_EVT;
+    evt.vol.state = &sState[sndp->target];
+    evt.vol.vol = scale_volume_s16(vol, recomp_get_sfx_volume());
+    alEvtqPostEvent(&sndp->evtq, (ALEvent *)&evt, 0);
+}
+
 RECOMP_PATCH s16 __vsVol(ALVoiceState* vs, ALSeqPlayer* seqp) {
     const ALChanState* chan_state;
     u32 note_gain;
@@ -1264,8 +1332,15 @@ int gfxCheckStretch(u32 *ptr, u32 var) {
     } else if (gTrackedSkyboxes[1].tracking && (gTrackedSkyboxes[1].ptr == (u8*)ptr)) {
         return 1;
     } else if (gSpecialLoadedBG.tracking && gSpecialLoadedBG.ptr == (u8*)ptr) {
+        // custom bomberman BG?
+        if (gSpecialLoadedBG.fileID == CUSTOM_BOMBERMAN_MENU_FILE_ID) {
+            // dont stretch anything but the BG
+            if (var == 0x00002400) {
+                return 0;
+            }
+        }
         // is the currently loaded special file the world select graphics?
-        if (gSpecialLoadedBG.fileID == 55) {
+        if (gSpecialLoadedBG.fileID == WORLD_SELECT_BG_FILE_ID) {
             // are we trying to stretch the world select GFX? dont.
             if (var == 0x00000C00) {
                 return 0;
