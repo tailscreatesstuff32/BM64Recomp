@@ -3,6 +3,7 @@
 #include "zelda_sound.h"
 #include "zelda_render.h"
 #include "zelda_support.h"
+#include "zelda_cheats.h"
 #include "ultramodern/config.hpp"
 #include "librecomp/files.hpp"
 #include <filesystem>
@@ -22,6 +23,7 @@ constexpr std::u8string_view general_filename = u8"general.json";
 constexpr std::u8string_view graphics_filename = u8"graphics.json";
 constexpr std::u8string_view controls_filename = u8"controls.json";
 constexpr std::u8string_view sound_filename = u8"sound.json";
+constexpr std::u8string_view cheats_filename = u8"cheats.json";
 
 constexpr auto res_default            = ultramodern::renderer::Resolution::Auto;
 constexpr auto hr_default             = ultramodern::renderer::HUDRatioMode::Clamp16x9;
@@ -481,6 +483,37 @@ bool load_sound_config(const std::filesystem::path& path) {
     return true;
 }
 
+bool save_cheats_config(const std::filesystem::path& path) {
+    nlohmann::json config_json{};
+
+    config_json["moonjump"] = zelda64::get_moonjump();
+    config_json["always_max_bomb"] = zelda64::get_always_max_bomb();
+    config_json["always_max_fire"] = zelda64::get_always_max_fire();
+    config_json["always_have_remote_bombs"] = zelda64::get_always_have_remote_bombs();
+    config_json["always_have_red_bombs"] = zelda64::get_always_have_red_bombs();
+    config_json["infinite_credits"] = zelda64::get_infinite_credits();
+    config_json["infinite_lives"] = zelda64::get_infinite_lives();
+
+    return save_json_with_backups(path, config_json);
+}
+
+bool load_cheats_config(const std::filesystem::path& path) {
+    nlohmann::json config_json{};
+    if (!read_json_with_backups(path, config_json)) {
+        return false;
+    }
+
+    zelda64::reset_cheats_settings();
+    zelda64::set_moonjump(from_or_default(config_json, "moonjump", zelda64::GenericOnOffOption::Off));
+    zelda64::set_always_max_bomb(from_or_default(config_json, "always_max_bomb", zelda64::GenericOnOffOption::Off));
+    zelda64::set_always_max_fire(from_or_default(config_json, "always_max_fire", zelda64::GenericOnOffOption::Off));
+    zelda64::set_always_have_remote_bombs(from_or_default(config_json, "always_have_remote_bombs", zelda64::GenericOnOffOption::Off));
+    zelda64::set_always_have_red_bombs(from_or_default(config_json, "always_have_red_bombs", zelda64::GenericOnOffOption::Off));
+    zelda64::set_infinite_credits(from_or_default(config_json, "infinite_credits", zelda64::GenericOnOffOption::Off));
+    zelda64::set_infinite_lives(from_or_default(config_json, "infinite_lives", zelda64::GenericOnOffOption::Off));
+    return true;
+}
+
 void zelda64::load_config() {
     detect_steam_deck();
 
@@ -489,6 +522,7 @@ void zelda64::load_config() {
     std::filesystem::path graphics_path = recomp_dir / graphics_filename;
     std::filesystem::path controls_path = recomp_dir / controls_filename;
     std::filesystem::path sound_path = recomp_dir / sound_filename;
+    std::filesystem::path cheats_path = recomp_dir / cheats_filename;
 
     if (!recomp_dir.empty()) {
         std::filesystem::create_directories(recomp_dir);
@@ -516,6 +550,11 @@ void zelda64::load_config() {
         zelda64::reset_sound_settings();
         save_sound_config(sound_path);
     }
+
+    if (!load_cheats_config(cheats_path)) {
+        zelda64::reset_cheats_settings();
+        save_cheats_config(cheats_path);
+    }
 }
 
 void zelda64::save_config() {
@@ -533,4 +572,5 @@ void zelda64::save_config() {
     save_graphics_config(recomp_dir / graphics_filename);
     save_controls_config(recomp_dir / controls_filename);
     save_sound_config(recomp_dir / sound_filename);
+    save_cheats_config(recomp_dir / cheats_filename);
 }

@@ -30,6 +30,17 @@ namespace zelda64 {
         OptionCount
     };
 
+    enum GenericOnOffOption {
+        On,
+        Off,
+        OptionCount
+    };
+
+    NLOHMANN_JSON_SERIALIZE_ENUM(zelda64::GenericOnOffOption, {
+        {zelda64::GenericOnOffOption::On, "On"},
+        {zelda64::GenericOnOffOption::Off, "Off"}
+    });
+
     enum class CustomBombermanMode {
         On,
         Off,
@@ -39,11 +50,6 @@ namespace zelda64 {
     NLOHMANN_JSON_SERIALIZE_ENUM(zelda64::FilmGrainMode, {
         {zelda64::FilmGrainMode::On, "On"},
         {zelda64::FilmGrainMode::Off, "Off"}
-    });
-
-    NLOHMANN_JSON_SERIALIZE_ENUM(zelda64::CustomBombermanMode, {
-        {zelda64::CustomBombermanMode::On, "On"},
-        {zelda64::CustomBombermanMode::Off, "Off"}
     });
 
     enum class TargetingMode {

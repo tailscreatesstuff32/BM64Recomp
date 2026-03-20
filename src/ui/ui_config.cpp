@@ -5,6 +5,7 @@
 #include "zelda_debug.h"
 #include "zelda_render.h"
 #include "zelda_support.h"
+#include "zelda_cheats.h"
 #include "promptfont.h"
 #include "ultramodern/config.hpp"
 #include "ultramodern/ultramodern.hpp"
@@ -20,6 +21,7 @@ Rml::DataModelHandle general_model_handle;
 Rml::DataModelHandle controls_model_handle;
 Rml::DataModelHandle graphics_model_handle;
 Rml::DataModelHandle sound_options_model_handle;
+Rml::DataModelHandle cheats_model_handle;
 
 // True if controller config menu is open, false if keyboard config menu is open, undefined otherwise
 bool configuring_controller = false;
@@ -34,6 +36,8 @@ int recompui::config_tab_to_index(recompui::ConfigTab tab) {
         return 2;
     case recompui::ConfigTab::Sound:
         return 3;
+    case recompui::ConfigTab::Cheats:
+        return 6;
     case recompui::ConfigTab::Mods:
         return 4;
     case recompui::ConfigTab::Debug:
@@ -480,6 +484,119 @@ recompui::ContextId config_context;
 
 recompui::ContextId recompui::get_config_context_id() {
 	return config_context;
+}
+// ---------------------------------------
+// CHEATS
+// ---------------------------------------
+
+struct CheatsContext {
+    zelda64::GenericOnOffOption moonjump;
+    zelda64::GenericOnOffOption always_max_bomb;
+    zelda64::GenericOnOffOption always_max_fire;
+    zelda64::GenericOnOffOption always_have_remote_bombs;
+    zelda64::GenericOnOffOption always_have_red_bombs;
+    zelda64::GenericOnOffOption infinite_credits;
+    zelda64::GenericOnOffOption infinite_lives;
+
+    void reset() {
+        moonjump = zelda64::GenericOnOffOption::Off;
+        always_max_bomb = zelda64::GenericOnOffOption::Off;
+		always_max_fire = zelda64::GenericOnOffOption::Off;
+        always_have_remote_bombs = zelda64::GenericOnOffOption::Off;
+        always_have_red_bombs = zelda64::GenericOnOffOption::Off;
+        infinite_credits = zelda64::GenericOnOffOption::Off;
+        infinite_lives = zelda64::GenericOnOffOption::Off;
+    }
+
+    CheatsContext() {
+        reset();
+    }
+};
+
+CheatsContext cheats_context;
+
+void zelda64::reset_cheats_settings() {
+    cheats_context.reset();
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyAllVariables();
+    }
+}
+
+zelda64::GenericOnOffOption zelda64::get_moonjump() {
+    return cheats_context.moonjump;
+}
+
+void zelda64::set_moonjump(zelda64::GenericOnOffOption mode) {
+    cheats_context.moonjump = mode;
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyVariable("moonjump");
+    }
+}
+
+zelda64::GenericOnOffOption zelda64::get_always_max_bomb() {
+    return cheats_context.always_max_bomb;
+}
+
+void zelda64::set_always_max_bomb(zelda64::GenericOnOffOption mode) {
+    cheats_context.always_max_bomb = mode;
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyVariable("always_max_bomb");
+    }
+}
+
+zelda64::GenericOnOffOption zelda64::get_always_max_fire() {
+    return cheats_context.always_max_fire;
+}
+
+void zelda64::set_always_max_fire(zelda64::GenericOnOffOption mode) {
+    cheats_context.always_max_fire = mode;
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyVariable("always_max_fire");
+    }
+}
+
+zelda64::GenericOnOffOption zelda64::get_always_have_remote_bombs() {
+    return cheats_context.always_have_remote_bombs;
+}
+
+void zelda64::set_always_have_remote_bombs(zelda64::GenericOnOffOption mode) {
+    cheats_context.always_have_remote_bombs = mode;
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyVariable("always_have_remote_bombs");
+    }
+}
+
+zelda64::GenericOnOffOption zelda64::get_always_have_red_bombs() {
+    return cheats_context.always_have_red_bombs;
+}
+
+void zelda64::set_always_have_red_bombs(zelda64::GenericOnOffOption mode) {
+    cheats_context.always_have_red_bombs = mode;
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyVariable("always_have_red_bombs");
+    }
+}
+
+zelda64::GenericOnOffOption zelda64::get_infinite_credits() {
+    return cheats_context.infinite_credits;
+}
+
+void zelda64::set_infinite_credits(zelda64::GenericOnOffOption mode) {
+    cheats_context.infinite_credits = mode;
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyVariable("infinite_credits");
+    }
+}
+
+zelda64::GenericOnOffOption zelda64::get_infinite_lives() {
+    return cheats_context.infinite_lives;
+}
+
+void zelda64::set_infinite_lives(zelda64::GenericOnOffOption mode) {
+    cheats_context.infinite_lives = mode;
+    if (cheats_model_handle) {
+        cheats_model_handle.DirtyVariable("infinite_lives");
+    }
 }
 
 // Helper copied from RmlUi to get a named child.
@@ -1002,6 +1119,25 @@ public:
         debug_context.model_handle = constructor.GetModelHandle();
     }
 
+    void make_cheat_bindings(Rml::Context* context) {
+        Rml::DataModelConstructor constructor = context->CreateDataModel("cheats_model");
+        if (!constructor) {
+            throw std::runtime_error("Failed to make RmlUi data model for the cheats menu");
+        }
+
+        bind_config_list_events(constructor);
+
+        cheats_model_handle = constructor.GetModelHandle();
+
+        bind_option(constructor, "moonjump", &cheats_context.moonjump);
+        bind_option(constructor, "always_max_bomb", &cheats_context.always_max_bomb);
+        bind_option(constructor, "always_max_fire", &cheats_context.always_max_fire);
+        bind_option(constructor, "always_have_remote_bombs", &cheats_context.always_have_remote_bombs);
+        bind_option(constructor, "always_have_red_bombs", &cheats_context.always_have_red_bombs);
+        bind_option(constructor, "infinite_credits", &cheats_context.infinite_credits);
+        bind_option(constructor, "infinite_lives", &cheats_context.infinite_lives);
+    }
+
     void make_bindings(Rml::Context* context) override {
         // initially set cont state for ui help
         //recomp::config_menu_set_cont_or_kb(recompui::get_cont_active());
@@ -1011,6 +1147,7 @@ public:
         make_graphics_bindings(context);
         make_sound_options_bindings(context);
         make_debug_bindings(context);
+        make_cheat_bindings(context);
     }
 };
 
@@ -1088,3 +1225,28 @@ Rml::Element* recompui::get_mod_tab() {
 
     return tab_el;
 }
+
+/*
+moon jump
+infinite health
+always max bomb upgrades
+always max fire upgrades
+always have remote bombs
+always have red bombs
+infinite credits
+infinite lives
+
+// These defaults values don't matter, as the config file handling overrides them.
+struct ControlOptionsContext {
+    int rumble_strength; // 0 to 100
+    int gyro_sensitivity; // 0 to 100
+    int mouse_sensitivity; // 0 to 100
+    int joystick_deadzone; // 0 to 100
+    zelda64::TargetingMode targeting_mode;
+    recomp::BackgroundInputMode background_input_mode;
+    zelda64::FilmGrainMode film_grain_mode;
+    zelda64::RadioBoxMode radio_comm_box_mode;
+    zelda64::AimInvertMode invert_y_axis_mode;
+    zelda64::AimInvertMode analog_camera_invert_mode;
+};
+*/

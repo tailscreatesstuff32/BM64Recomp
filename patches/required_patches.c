@@ -4,6 +4,7 @@
 #include "PR/os_pi.h"
 #include "PR/sched.h"
 #include "ultra_extensions.h"
+#include "cheats.h"
 
 #define ENABLE_WIDESCREEN_ASPECT_CHANGES
 
@@ -808,6 +809,177 @@ RECOMP_PATCH void func_80227D50(FBInfo* fb, u32 ulx, u32 uly, u32 width, u32 hei
 extern void (*D_802B36AC)(void *); // __free_hook
 void free_hook(void *);
 
+enum GenericOffOnOption {
+    ON,
+    OFF,
+};
+
+extern u32 D_80027060[];
+
+static OSContPad tempPad;
+
+typedef struct LevelClass
+{
+	int num;						// 0x00
+	int type;						// 0x04
+	int propertiesFlag;             // 0x08
+	int u2;							// 0x0C
+	int flag;						// 0x10
+	int u4;							// 0x14
+	int u5;							// 0x18
+	int u6;							// 0x1C
+	int u7;							// 0x20
+	int u8;							// 0x24
+	int objectID;					// 0x28 - Check ObjectVars.h for a list of object IDs
+	int u10;						// 0x2C
+	int u11;						// 0x30
+	float radius;					// 0x34
+	float unk_float;				// 0x38
+	int u12;						// 0x3C
+	void *ObjectPointer;			// 0x40 - Pointer to the Object this LevelClass is spawning
+	struct LevelClass *CollisionPointer; 	// 0x44 - Pointer to the collision LevelClass
+	int u13;						// 0x48
+	float unk_vector[3];			// 0x4C - 0x54
+	int u14[4];						// 0x58 - 0x64
+	float unk_float1;				// 0x68
+	float yVel;       				// 0x6C
+	float unk_float3;				// 0x70
+	float unk_float4;				// 0x74
+	long unk_pointer2;				// 0x78
+	long unk_pointer3;				// 0x7C
+} LevelClass;
+
+typedef struct Player {
+	float spawnLocation[3];
+	float directionAngle;
+	int flag;
+	int heartCount;
+	short u1;
+	short bombType;
+	int bombCount;
+	int bombExplosionLevel;
+	int controlType;              // 0 = None, 1 = Player, 2 = AI, 3 = Dead (No Input)
+	LevelClass *PlayerLevelClass; // Pointer to the LevelClass this Player is controlling
+	LevelClass *HeldLevelClass;   // Pointer to the LevelClass of the held object
+	LevelClass *OtherClass;
+	int u8;
+	int u9;
+	int u10;
+	int u11;
+	int animationType;
+	int collisionEnabled;
+	int u13;
+	int u14;
+	int u15;
+	float directionAngle2[4];
+	short u12;
+	char timerA_Enabled; // virusType has to be set for this to work
+	char virusType;
+	float virusFloat1;
+	float virusFloat2;
+	int timer2;
+	int virusTimer;
+	int u16[5];
+	int timerA;
+	short unkType;
+	short unkType1;
+	int unkType2;
+	int u17[5];
+	LevelClass *ComputationLevelClass;
+	int u20[3];
+	float unknownFloat1;
+	int u21;
+} Player;
+
+extern Player g_Players[8]; //0x800AEDF0
+extern u32 D_802AC624; // lives
+extern u32 D_802AC628; // credits
+
+RECOMP_EXPORT void Recomp_ProcessCheats() {
+    osContGetReadData(&tempPad);
+
+    /* Moonjump (Hold L to Moonjump) */
+    switch (recomp_get_moonjump()) {
+        default:
+        case (enum GenericOffOnOption)OFF:
+            break;
+        case (enum GenericOffOnOption)ON:
+            // is the player holding L?
+            if (tempPad.button & 0x2000) {
+                if (g_Players[0].PlayerLevelClass) {
+                    g_Players[0].PlayerLevelClass->yVel = -32.0f;
+                }
+            }
+            break;
+    }
+
+#define MAX_BOMB_COUNT_UPGRADE 0xFF
+#define MAX_BOMB_FIRE_UPGRADE  0xFF
+
+    /* Always Max Bomb Count */
+    switch (recomp_get_always_max_bomb()) {
+        default:
+        case (enum GenericOffOnOption)OFF:
+            break;
+        case (enum GenericOffOnOption)ON:
+            g_Players[0].bombCount = MAX_BOMB_COUNT_UPGRADE;
+            break;
+    }
+
+    /* Always Max Fire Count */
+    switch (recomp_get_always_max_fire()) {
+        default:
+        case (enum GenericOffOnOption)OFF:
+            break;
+        case (enum GenericOffOnOption)ON:
+            g_Players[0].bombExplosionLevel = MAX_BOMB_FIRE_UPGRADE;
+            break;
+    }
+
+#define HAVE_RED_BOMBS    (1 << 0) // 1
+#define HAVE_REMOTE_BOMBS (1 << 1) // 2
+
+    /* Always Have Remote Bombs */
+    switch (recomp_get_always_have_remote_bombs()) {
+        default:
+        case (enum GenericOffOnOption)OFF:
+            break;
+        case (enum GenericOffOnOption)ON:
+            g_Players[0].bombType |= HAVE_REMOTE_BOMBS;
+            break;
+    }
+
+    /* Always Have Red Bombs */
+    switch (recomp_get_always_have_red_bombs()) {
+        default:
+        case (enum GenericOffOnOption)OFF:
+            break;
+        case (enum GenericOffOnOption)ON:
+            g_Players[0].bombType |= HAVE_RED_BOMBS;
+            break;
+    }
+
+    /* Infinite Credits */
+    switch (recomp_get_infinite_credits()) {
+        default:
+        case (enum GenericOffOnOption)OFF:
+            break;
+        case (enum GenericOffOnOption)ON:
+            D_802AC628 = 99;
+            break;
+    }
+
+    /* Infinite Lives */
+    switch (recomp_get_infinite_lives()) {
+        default:
+        case (enum GenericOffOnOption)OFF:
+            break;
+        case (enum GenericOffOnOption)ON:
+            D_802AC624 = 99;
+            break;
+    }
+}
+
 RECOMP_PATCH void func_80225840(void *arg0) {
     void *temp_s0; 
     Gfx *mainGfx;
@@ -856,6 +1028,7 @@ RECOMP_PATCH void func_80225840(void *arg0) {
     D_802B36AC = free_hook;
 
     while (TRUE) {
+        Recomp_ProcessCheats();
         func_8023A104();           // receive message from the cont mesg queue and run osContGetReadData
         mainGfx = Gfx_InitGfx();   // init gfx
         ThreadProc_RunQueuedThreads();           // get thread pri/start some kind of thread.
