@@ -1,5 +1,6 @@
 #include "patches.h"
 #include "misc_funcs.h"
+#include "sound.h"
 #include "PR/os_pi.h"
 #include "PR/sched.h"
 #include "ultra_extensions.h"
@@ -132,6 +133,45 @@ RECOMP_PATCH void set_zero_vaddr_tlb(void) {
     // Not used.
     //osMapTLB(0, 0, NULL, (u32) (((u32) (&D_80042000)) - 0x80000000), -1, -1);
     gSecureCallArr[0] = 0x80019f80; // this feels dirty hardcoding it, but whatever.
+}
+
+static s16 scale_volume_s16(s16 volume, float scale) {
+    return (s16)((f32)volume * scale);
+}
+
+enum {
+    VOICE_GAIN_SHIFT = 6,
+    CHANNEL_GAIN_SHIFT = 14,
+    FINAL_GAIN_SHIFT = 15,
+};
+
+RECOMP_PATCH void alSeqpSetVol(ALSeqPlayer* seqp, s16 vol) {
+    ALEvent evt;
+
+    evt.type = AL_SEQP_VOL_EVT;
+    evt.msg.spvol.vol = vol;
+    alEvtqPostEvent(&seqp->evtq, &evt, 0);
+}
+
+RECOMP_PATCH s16 __vsVol(ALVoiceState* vs, ALSeqPlayer* seqp) {
+    const ALChanState* chan_state;
+    u32 note_gain;
+    u32 channel_gain;
+    s16 native_voice_volume;
+
+    chan_state = &seqp->chanState[(u32)vs->channel];
+
+    // Voice-local gain (tremolo, note velocity, envelope).
+    note_gain = (u32)vs->tremelo * (u32)vs->velocity;
+    note_gain = (note_gain * (u32)vs->envGain) >> VOICE_GAIN_SHIFT;
+
+    // Channel/sample gain and sequence master volume.
+    channel_gain = (u32)chan_state->vol * (u32)vs->sound->sampleVolume;
+    channel_gain = (channel_gain * (u32)seqp->vol) >> CHANNEL_GAIN_SHIFT;
+
+    // Original libaudio fixed-point normalization.
+    native_voice_volume = (s16)((note_gain * channel_gain) >> FINAL_GAIN_SHIFT);
+    return scale_volume_s16(native_voice_volume, recomp_get_bgm_volume());
 }
 
 s32 func_8022979C(void*, s32, s32);                       /* extern */

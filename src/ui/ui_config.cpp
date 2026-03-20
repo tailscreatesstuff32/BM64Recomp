@@ -12,6 +12,8 @@
 
 #include "core/ui_context.h"
 
+#include <algorithm>
+
 ultramodern::renderer::GraphicsConfig new_options;
 Rml::DataModelHandle nav_help_model_handle;
 Rml::DataModelHandle general_model_handle;
@@ -388,7 +390,7 @@ void zelda64::reset_sound_settings() {
 }
 
 void zelda64::set_main_volume(int volume) {
-    sound_options_context.main_volume.store(volume);
+    sound_options_context.main_volume.store(std::clamp(volume, 0, 100));
     if (sound_options_model_handle) {
         sound_options_model_handle.DirtyVariable("main_volume");
     }
@@ -399,7 +401,7 @@ int zelda64::get_main_volume() {
 }
 
 void zelda64::set_bgm_volume(int volume) {
-    sound_options_context.bgm_volume.store(volume);
+    sound_options_context.bgm_volume.store(std::clamp(volume, 0, 100));
     if (sound_options_model_handle) {
         sound_options_model_handle.DirtyVariable("bgm_volume");
     }
@@ -410,10 +412,10 @@ int zelda64::get_bgm_volume() {
 }
 
 void zelda64::set_sfx_volume(int volume) {
-    sound_options_context.sfx_volume.store(volume);
-	if (sound_options_model_handle) {
-		sound_options_model_handle.DirtyVariable("sfx_volume");
-	}
+    sound_options_context.sfx_volume.store(std::clamp(volume, 0, 100));
+    if (sound_options_model_handle) {
+        sound_options_model_handle.DirtyVariable("sfx_volume");
+    }
 }
 
 int zelda64::get_sfx_volume() {
@@ -421,10 +423,10 @@ int zelda64::get_sfx_volume() {
 }
 
 void zelda64::set_voice_volume(int volume) {
-    sound_options_context.voice_volume.store(volume);
-	if (sound_options_model_handle) {
-		sound_options_model_handle.DirtyVariable("voice_volume");
-	}
+    sound_options_context.voice_volume.store(std::clamp(volume, 0, 100));
+    if (sound_options_model_handle) {
+        sound_options_model_handle.DirtyVariable("voice_volume");
+    }
 }
 
 int zelda64::get_voice_volume() {
