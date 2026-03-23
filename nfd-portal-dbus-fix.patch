@@ -1,0 +1,26 @@
+--- a/src/nfd_portal.cpp
++++ b/src/nfd_portal.cpp
+@@ -1346,8 +1346,8 @@ void NFD_ClearError(void) {
+ nfdresult_t NFD_Init(void) {
+     // Initialize dbus_err
+     dbus_error_init(&dbus_err);
+-    // Get DBus connection
+-    dbus_conn = dbus_bus_get(DBUS_BUS_SESSION, &dbus_err);
++    // Get a private DBus connection so we can safely close and unref it in NFD_Quit
++    dbus_conn = dbus_bus_get_private(DBUS_BUS_SESSION, &dbus_err);
+     if (!dbus_conn) {
+         NFDi_SetError(dbus_err.message);
+         return NFD_ERROR;
+@@ -1360,7 +1360,11 @@ nfdresult_t NFD_Init(void) {
+     return NFD_OKAY;
+ }
+ void NFD_Quit(void) {
+-    dbus_connection_unref(dbus_conn);
++    if (dbus_conn) {
++        dbus_connection_close(dbus_conn);
++        dbus_connection_unref(dbus_conn);
++        dbus_conn = nullptr;
++    }
+     // Note: We do not free dbus_error since NFD_Init might set it.
+     // To avoid leaking memory, the caller should explicitly call NFD_ClearError after reading the
+     // error.

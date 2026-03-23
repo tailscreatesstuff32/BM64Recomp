@@ -29,6 +29,28 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     option(RECOMP_FLATPAK "Configure the build for Flatpak compatibility." OFF)
     # Use xdg-desktop-portal for file dialogs to avoid GTK runtime mismatches in AppImages.
     set(NFD_PORTAL ON CACHE BOOL "Use xdg-desktop-portal for native file dialogs on Linux" FORCE)
+
+    # Fix NFD portal dbus crash: use private connection so NFD_Quit can safely close it.
+    # (Upstream nativefiledialog-extended uses dbus_bus_get which returns a shared connection
+    # that aborts on unref. This patch switches to dbus_bus_get_private.)
+    set(NFD_PORTAL_SRC "${CMAKE_SOURCE_DIR}/lib/rt64/src/contrib/nativefiledialog-extended/src/nfd_portal.cpp")
+    set(NFD_PORTAL_PATCH "${CMAKE_SOURCE_DIR}/nfd-portal-dbus-fix.patch")
+    execute_process(
+        COMMAND git apply --check --reverse ${NFD_PORTAL_PATCH}
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/rt64/src/contrib/nativefiledialog-extended"
+        RESULT_VARIABLE PATCH_ALREADY_APPLIED
+        OUTPUT_QUIET ERROR_QUIET
+    )
+    if (NOT PATCH_ALREADY_APPLIED EQUAL 0)
+        execute_process(
+            COMMAND git apply ${NFD_PORTAL_PATCH}
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/lib/rt64/src/contrib/nativefiledialog-extended"
+            RESULT_VARIABLE PATCH_RESULT
+        )
+        if (NOT PATCH_RESULT EQUAL 0)
+            message(WARNING "Failed to apply nfd-portal-dbus-fix.patch")
+        endif()
+    endif()
 endif()
 
 # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
