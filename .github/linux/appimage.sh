@@ -27,8 +27,9 @@ cp .github/linux/BM64Recompiled.desktop AppDir/
 mv squashfs-root/ deploy
 ./deploy/AppRun --appdir=AppDir/ -d AppDir/BM64Recompiled.desktop -i AppDir/BM64Recompiled.png -e AppDir/usr/bin/BM64Recompiled
 
-# linuxdeploy generates a binary AppRun; replace it with a shell script
-# so we can handle portable mode and set the correct working directory.
+# linuxdeploy may create AppRun as a symlink to the binary; remove it first
+# so we don't overwrite the actual executable through the symlink.
+rm -f AppDir/AppRun
 cat > AppDir/AppRun << 'APPRUN'
 #!/bin/bash
 this_dir="$(dirname "$(readlink -f "$0")")"
